@@ -1,0 +1,2890 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pet Battle Simulator</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Baloo+2:wght@500;600;700;800&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-void: #0a0b16;
+            --panel: #14172a;
+            --panel-deep: #0d0f1c;
+            --edge: #2b3053;
+            --edge-lit: #454c7d;
+            --ink: #eef0ff;
+            --ink-dim: #8489b4;
+            --volt: #d4ff5f;
+            --volt-deep: #7a9a1f;
+            --ember: #ff5d6c;
+            --ember-deep: #7a1f2a;
+            --mist: #66e6da;
+            --mist-deep: #1f6a63;
+            --gold: #ffb84d;
+            --fire: #ff6b3d;
+            --earth: #7ed957;
+            --air: #4fd1ff;
+            --water: #5169ff;
+        }
+
+        body {
+            background: var(--bg-void);
+            color: var(--ink);
+            font-family: 'Baloo 2', 'Trebuchet MS', sans-serif;
+            background-image:
+                radial-gradient(circle at 15% 10%, rgba(212, 255, 95, 0.05), transparent 40%),
+                radial-gradient(circle at 85% 90%, rgba(81, 105, 255, 0.07), transparent 40%);
+        }
+
+        .pixel-font {
+            font-family: 'Press Start 2P', monospace;
+        }
+
+        #team-builder {
+            position: relative;
+            display: flex;
+            width: 100%;
+            height: 100vh;
+        }
+
+        .panel {
+            width: 50%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: var(--panel);
+        }
+
+        .panel-header {
+            text-align: center;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 13px;
+            letter-spacing: 1px;
+            padding: 14px 10px;
+            background: var(--panel-deep);
+            color: var(--volt);
+            flex-shrink: 0;
+            border-bottom: 3px solid var(--edge);
+            text-shadow: 0 2px 0 rgba(0, 0, 0, 0.6);
+        }
+
+        .search-box {
+            width: calc(100% - 20px);
+            padding: 9px 14px;
+            font-size: 14px;
+            font-family: 'Baloo 2', sans-serif;
+            font-weight: 600;
+            background: var(--panel-deep);
+            border: 2px solid var(--edge);
+            border-radius: 8px;
+            color: var(--ink);
+            margin: 10px;
+            flex-shrink: 0;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .search-box::placeholder {
+            color: var(--ink-dim);
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: var(--volt);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5), 0 0 0 3px rgba(212, 255, 95, 0.15);
+        }
+
+        .deck-slots-area {
+            padding: 10px 10px 6px;
+            background: var(--panel-deep);
+            flex-shrink: 0;
+            border-bottom: 3px solid var(--edge);
+        }
+
+        .deck-slots-area h3 {
+            font-size: 11px;
+            margin-bottom: 5px;
+            color: var(--ink-dim);
+            font-family: 'Press Start 2P', monospace;
+            letter-spacing: 0.5px;
+        }
+
+        .slot-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .slot {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--panel);
+            border: 2px dashed var(--edge);
+            border-radius: 8px;
+            padding: 5px 8px;
+            min-height: 44px;
+            cursor: pointer;
+            transition: 0.15s;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .slot:hover {
+            border-color: var(--volt);
+            box-shadow: 0 0 0 2px rgba(212, 255, 95, 0.15);
+        }
+
+        .slot.filled {
+            border-style: solid;
+            box-shadow: inset 2px 2px 0 rgba(255, 255, 255, 0.05), inset -2px -2px 0 rgba(0, 0, 0, 0.35);
+        }
+
+        .slot.filled.air {
+            border-color: var(--air);
+            background: #0f2436;
+        }
+
+        .slot.filled.earth {
+            border-color: var(--earth);
+            background: #12281a;
+        }
+
+        .slot.filled.fire {
+            border-color: var(--fire);
+            background: #2a1512;
+        }
+
+        .slot.filled.water {
+            border-color: var(--water);
+            background: #131735;
+        }
+
+        .slot img {
+            width: 30px;
+            height: 30px;
+            image-rendering: pixelated;
+        }
+
+        .slot .slot-name {
+            font-weight: 700;
+            font-size: 11px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 120px;
+            color: var(--ink);
+        }
+
+        .slot .slot-cd {
+            color: var(--ink-dim);
+            font-size: 10px;
+            font-family: 'Press Start 2P', monospace;
+        }
+
+        .slot .slot-empty {
+            color: var(--edge-lit);
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .pet-list-area {
+            flex: 1;
+            overflow-y: scroll;
+            padding: 10px;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .pet-list-area::-webkit-scrollbar {
+            display: none;
+        }
+
+        .element-section {
+            margin-bottom: 14px;
+        }
+
+        .element-title {
+            padding: 7px 12px;
+            font-size: 13px;
+            font-weight: 800;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            font-family: 'Press Start 2P', monospace;
+            letter-spacing: 0.5px;
+            border-left: 4px solid;
+        }
+
+        .element-air {
+            background: #0f2436;
+            color: var(--air);
+            border-color: var(--air);
+        }
+
+        .element-earth {
+            background: #12281a;
+            color: var(--earth);
+            border-color: var(--earth);
+        }
+
+        .element-fire {
+            background: #2a1512;
+            color: var(--fire);
+            border-color: var(--fire);
+        }
+
+        .element-water {
+            background: #131735;
+            color: var(--water);
+            border-color: var(--water);
+        }
+
+        .pet-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .pet-card {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--panel-deep);
+            border: 2px solid var(--edge);
+            border-radius: 8px;
+            padding: 3px 6px;
+            width: 185px;
+            cursor: pointer;
+            transition: 0.15s;
+            font-size: 11px;
+            overflow: visible;
+        }
+
+        .pet-card:hover {
+            border-color: var(--volt);
+            background: #1a1e38;
+            transform: translateY(-1px);
+        }
+
+        .pet-card.in-team {
+            border-color: var(--mist);
+            background: #16241f;
+            opacity: 0.45;
+            pointer-events: none;
+        }
+
+        .pet-card.partial-team {
+            border-color: var(--gold);
+        }
+
+        .pet-card {
+            position: relative;
+        }
+
+        .pet-count-badge {
+            display: none;
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            font-size: 8px;
+            font-weight: 700;
+            padding: 1px 4px;
+            border-radius: 6px;
+            background: var(--panel-deep);
+            color: var(--gold);
+            border: 1px solid var(--gold);
+        }
+
+        .pet-card.partial-team .pet-count-badge,
+        .pet-card.in-team .pet-count-badge {
+            display: inline-block;
+        }
+
+        .pet-card.in-team .pet-count-badge {
+            color: var(--mist);
+            border-color: var(--mist);
+        }
+
+        .pet-card img {
+            width: 34px;
+            height: 34px;
+            image-rendering: pixelated;
+        }
+
+        .pet-name {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--ink);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 130px;
+        }
+
+        .pet-cd {
+            color: var(--ink-dim);
+            font-size: 10px;
+            font-family: 'Press Start 2P', monospace;
+        }
+
+        .pet-cd.passive {
+            color: var(--volt);
+        }
+
+        #start-btn {
+            display: none;
+            position: absolute;
+            bottom: 34px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 16px 44px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 14px;
+            letter-spacing: 1px;
+            background: linear-gradient(180deg, #e4ff8f, var(--volt));
+            color: #16210a;
+            border: 3px solid #16210a;
+            border-radius: 10px;
+            cursor: pointer;
+            z-index: 10;
+            box-shadow: 0 6px 0 var(--volt-deep), 0 10px 24px rgba(0, 0, 0, 0.5);
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
+        }
+
+        #start-btn:hover {
+            transform: translateX(-50%) translateY(-2px);
+            box-shadow: 0 8px 0 var(--volt-deep), 0 14px 28px rgba(0, 0, 0, 0.5);
+        }
+
+        #start-btn:active:not(:disabled) {
+            transform: translateX(-50%) translateY(4px);
+            box-shadow: 0 2px 0 var(--volt-deep);
+        }
+
+        #start-btn.show {
+            display: block;
+            animation: fadeInUp 0.4s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        #start-btn:disabled {
+            background: var(--panel-deep);
+            color: var(--edge-lit);
+            border-color: var(--edge);
+            box-shadow: 0 6px 0 var(--edge);
+            cursor: not-allowed;
+        }
+
+        .divider {
+            border-right: 3px solid var(--edge);
+        }
+
+        #battle-screen {
+            display: none;
+            width: 100%;
+            height: 100vh;
+            background: var(--bg-void);
+            position: relative;
+            background-image: radial-gradient(circle at 50% 15%, rgba(212, 255, 95, 0.04), transparent 45%), radial-gradient(circle at 50% 85%, rgba(255, 93, 108, 0.04), transparent 45%);
+        }
+
+        .battle-container {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .side-deck {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+            padding: 10px 10px 16px;
+            background: var(--panel);
+            border-radius: 12px;
+            border: 2px solid var(--edge);
+            width: 80px;
+            box-shadow: inset 2px 2px 0 rgba(255, 255, 255, 0.03), inset -2px -2px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .side-deck .swap-btn {
+            width: 100%;
+            padding: 7px;
+            font-size: 10px;
+            font-family: 'Press Start 2P', monospace;
+            background: var(--edge);
+            border: 2px solid var(--edge-lit);
+            border-radius: 6px;
+            color: var(--ink);
+            cursor: pointer;
+            box-shadow: 0 2px 0 rgba(0, 0, 0, 0.4);
+            transition: 0.1s;
+        }
+
+        .side-deck .swap-btn:hover {
+            background: var(--edge-lit);
+            transform: translateY(-1px);
+        }
+
+        .side-deck .swap-btn.on-cd {
+            opacity: 0.35;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .side-pet {
+            width: 50px;
+            height: 50px;
+            border: 2px solid var(--edge);
+            border-radius: 10px;
+            background: var(--panel-deep);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: visible;
+            margin-bottom: 6px;
+        }
+
+        .side-pet img {
+            width: 40px;
+            height: 40px;
+            image-rendering: pixelated;
+        }
+
+        .side-pet .side-cd {
+            position: absolute;
+            bottom: -14px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 9px;
+            font-family: 'Press Start 2P', monospace;
+            background: var(--panel-deep);
+            color: var(--ember);
+            padding: 2px 6px;
+            border-radius: 6px;
+            white-space: nowrap;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--edge);
+        }
+
+        .side-pet .side-cd.ready {
+            color: var(--volt);
+        }
+
+        .side-pet.air {
+            border-color: var(--air);
+        }
+
+        .side-pet.earth {
+            border-color: var(--earth);
+        }
+
+        .side-pet.fire {
+            border-color: var(--fire);
+        }
+
+        .side-pet.water {
+            border-color: var(--water);
+        }
+
+        .active-deck-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            background: var(--panel);
+            border: 2px solid var(--edge);
+            border-radius: 16px;
+            padding: 16px;
+            width: 370px;
+            box-shadow: inset 2px 2px 0 rgba(255, 255, 255, 0.03), inset -2px -2px 0 rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+        }
+
+        .active-deck-area.enemy-area {
+            border-color: var(--ember-deep);
+            background: #1c1420;
+        }
+
+        .active-deck-area.your-area {
+            border-color: var(--mist-deep);
+            background: #131c22;
+        }
+
+        .deck-label-big {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--ink-dim);
+            font-family: 'Press Start 2P', monospace;
+            letter-spacing: 0.5px;
+        }
+
+        .player-log {
+            min-height: 22px;
+            font-size: 12px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 2px;
+        }
+
+        .player-log .log-msg {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 8px;
+            animation: fadeUp 2.2s forwards;
+        }
+
+        @keyframes fadeUp {
+            0% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            70% {
+                opacity: 1;
+                transform: translateY(-10px);
+            }
+
+            100% {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+        }
+
+        .pet-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .team-pet {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px;
+            background: var(--panel-deep);
+            border: 2px solid var(--edge);
+            border-radius: 12px;
+            width: 100px;
+            cursor: pointer;
+            transition: 0.15s;
+            overflow: hidden;
+        }
+
+        .team-pet:hover {
+            border-color: var(--edge-lit);
+        }
+
+        .team-pet.selected {
+            border-color: var(--volt);
+            box-shadow: 0 0 0 3px rgba(212, 255, 95, 0.2), 0 0 16px rgba(212, 255, 95, 0.35);
+            transform: scale(1.05);
+        }
+
+        .team-pet img {
+            width: 48px;
+            height: 48px;
+            image-rendering: pixelated;
+        }
+
+        .team-pet .tp-name {
+            font-size: 10px;
+            color: var(--ink-dim);
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 90px;
+        }
+
+        .team-pet .tp-cd {
+            font-size: 11px;
+            font-weight: 700;
+            font-family: 'Press Start 2P', monospace;
+        }
+
+        .team-pet .tp-cd.ready {
+            color: var(--volt);
+        }
+
+        .team-pet .tp-cd.waiting {
+            color: var(--ember);
+        }
+
+        .team-pet.air {
+            border-color: var(--air);
+        }
+
+        .team-pet.earth {
+            border-color: var(--earth);
+        }
+
+        .team-pet.fire {
+            border-color: var(--fire);
+        }
+
+        .team-pet.water {
+            border-color: var(--water);
+        }
+
+        .hp-section {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .hp-label {
+            font-size: 10px;
+            color: var(--ink-dim);
+            font-family: 'Press Start 2P', monospace;
+        }
+
+        .hp-bar-outer {
+            flex: 1;
+            height: 16px;
+            background: var(--panel-deep);
+            border-radius: 4px;
+            overflow: hidden;
+            border: 2px solid var(--edge);
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.6);
+        }
+
+        .hp-bar-inner {
+            height: 100%;
+            background-image: repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.28) 0, rgba(0, 0, 0, 0.28) 2px, transparent 2px, transparent 9px), linear-gradient(180deg, #b6ff6f 0%, #7ed935 55%, #5fae22 100%);
+            box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.3), inset 0 -3px 0 rgba(0, 0, 0, 0.25);
+            transition: width 0.35s steps(14);
+        }
+
+        .hp-bar-inner.low {
+            background-image: repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.28) 0, rgba(0, 0, 0, 0.28) 2px, transparent 2px, transparent 9px), linear-gradient(180deg, #ff9d8f 0%, var(--ember) 55%, #c23a48 100%);
+        }
+
+        .hp-text {
+            font-size: 11px;
+            color: var(--ink-dim);
+            width: 54px;
+            text-align: right;
+            font-family: 'Press Start 2P', monospace;
+        }
+
+        .vs-divider {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 18px;
+            color: var(--gold);
+            font-weight: 700;
+            text-align: center;
+            padding: 10px;
+            text-shadow: 0 0 12px rgba(255, 184, 77, 0.6), 0 2px 0 rgba(0, 0, 0, 0.6);
+        }
+
+        #battle-log {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--ink-dim);
+            font-size: 12px;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .passive-indicator {
+            position: fixed;
+            bottom: 10px;
+            display: flex;
+            gap: 6px;
+            z-index: 20;
+            flex-wrap: wrap;
+            max-width: 300px;
+            overflow: visible;
+        }
+
+        .passive-icon {
+            width: 40px;
+            height: 40px;
+            border: 2px solid var(--edge-lit);
+            border-radius: 8px;
+            background: var(--panel);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.05), inset -1px -1px 0 rgba(0, 0, 0, 0.35);
+        }
+
+        .passive-icon img {
+            width: 32px;
+            height: 32px;
+            image-rendering: pixelated;
+        }
+
+        .passive-icon .passive-tooltip {
+            display: none;
+            position: absolute;
+            bottom: 50px;
+            left: 0;
+            background: var(--panel-deep);
+            border: 2px solid var(--edge-lit);
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 11px;
+            white-space: nowrap;
+            color: var(--ink);
+            z-index: 30;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        }
+
+        #enemy-passives .passive-icon .passive-tooltip {
+            left: auto;
+            right: 0;
+        }
+
+        .passive-icon:hover .passive-tooltip {
+            display: block;
+        }
+
+        .status-icon-debuff {
+            width: 40px;
+            height: 40px;
+            border: 2px solid var(--ember);
+            border-radius: 8px;
+            background: #23131a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .status-icon-debuff .status-timer {
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 9px;
+            font-family: 'Press Start 2P', monospace;
+            background: var(--panel-deep);
+            color: var(--ember);
+            padding: 2px 5px;
+            border-radius: 6px;
+            white-space: nowrap;
+        }
+
+        .status-icon-debuff .status-tooltip {
+            display: none;
+            position: absolute;
+            bottom: 50px;
+            background: var(--panel-deep);
+            border: 2px solid var(--ember);
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 11px;
+            white-space: nowrap;
+            color: #ffb3ba;
+            z-index: 30;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        }
+
+        #your-debuffs .status-icon-debuff .status-tooltip {
+            left: 0;
+        }
+
+        #enemy-debuffs .status-icon-debuff .status-tooltip {
+            right: 0;
+        }
+
+        .status-icon-debuff:hover .status-tooltip {
+            display: block;
+        }
+
+        .status-effects-row {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 300px;
+            min-height: 18px;
+        }
+
+        .status-tag {
+            font-size: 10px;
+            padding: 3px 7px;
+            border-radius: 6px;
+            white-space: nowrap;
+            font-weight: 700;
+            border: 1px solid rgba(0, 0, 0, 0.3);
+        }
+
+        .status-dot {
+            background: #e0793a;
+            color: #fff;
+        }
+
+        .status-stun {
+            background: #e0a63a;
+            color: #1c1400;
+        }
+
+        .status-freeze {
+            background: #4a9fe0;
+            color: #fff;
+        }
+
+        .status-trauma {
+            background: #d0405a;
+            color: #fff;
+        }
+
+        .status-block {
+            background: #6a6f9a;
+            color: #fff;
+        }
+
+        .status-dodge {
+            background: #a866e0;
+            color: #fff;
+        }
+
+        .status-sleep {
+            background: #7d7ab0;
+            color: #fff;
+        }
+
+        .status-doom {
+            background: #2a0808;
+            color: var(--ember);
+            border: 1px solid var(--ember);
+        }
+
+        .status-icon-buff {
+            width: 40px;
+            height: 40px;
+            border: 2px solid var(--mist);
+            border-radius: 8px;
+            background: #10231f;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .status-icon-buff .status-timer {
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 9px;
+            font-family: 'Press Start 2P', monospace;
+            background: var(--panel-deep);
+            color: var(--mist);
+            padding: 2px 5px;
+            border-radius: 6px;
+            white-space: nowrap;
+        }
+
+        .passive-icon .status-timer {
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 9px;
+            font-family: 'Press Start 2P', monospace;
+            background: var(--panel-deep);
+            color: var(--mist);
+            padding: 2px 5px;
+            border-radius: 6px;
+            white-space: nowrap;
+        }
+
+        .status-icon-buff .status-tooltip {
+            display: none;
+            position: absolute;
+            bottom: 50px;
+            background: var(--panel-deep);
+            border: 2px solid var(--mist);
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 11px;
+            white-space: nowrap;
+            color: #b8fff5;
+            z-index: 30;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        }
+
+        #your-buffs .status-icon-buff .status-tooltip {
+            left: 0;
+        }
+
+        #enemy-buffs .status-icon-buff .status-tooltip {
+            right: 0;
+        }
+
+        .status-icon-buff:hover .status-tooltip {
+            display: block;
+        }
+
+        .weather-indicator {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 25;
+        }
+
+        .weather-icon {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--panel);
+            border: 2px solid var(--gold);
+            border-radius: 10px;
+            padding: 6px 12px;
+            box-shadow: 0 4px 14px rgba(255, 184, 77, 0.25), inset 1px 1px 0 rgba(255, 255, 255, 0.05);
+        }
+
+        .weather-icon img {
+            width: 32px;
+            height: 32px;
+            image-rendering: pixelated;
+        }
+
+        .weather-timer {
+            font-size: 12px;
+            color: var(--gold);
+            font-weight: 700;
+            font-family: 'Press Start 2P', monospace;
+        }
+
+        .detail-log-panel {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            width: 320px;
+            max-width: 38vw;
+            background: var(--panel-deep);
+            border: 2px solid var(--edge);
+            border-radius: 10px;
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
+            z-index: 40;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .detail-log-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 9px 12px;
+            background: var(--edge);
+            color: var(--volt);
+            font-size: 11px;
+            font-family: 'Press Start 2P', monospace;
+            cursor: pointer;
+            user-select: none;
+            flex-shrink: 0;
+        }
+
+        .detail-log-header .dl-count {
+            font-size: 9px;
+            font-weight: 600;
+            color: var(--ink-dim);
+            margin-right: 6px;
+            font-family: 'Baloo 2', sans-serif;
+        }
+
+        .detail-log-toggle {
+            background: none;
+            border: none;
+            color: var(--volt);
+            font-size: 14px;
+            cursor: pointer;
+            padding: 0 4px;
+            line-height: 1;
+        }
+
+        .detail-log-body {
+            max-height: 280px;
+            overflow-y: auto;
+            padding: 6px 10px;
+            font-size: 11px;
+        }
+
+        .detail-log-panel.minimized .detail-log-body {
+            display: none;
+        }
+
+        .detail-log-entry {
+            padding: 4px 0;
+            border-bottom: 1px solid var(--edge);
+            line-height: 1.4;
+        }
+
+        .detail-log-entry:last-child {
+            border-bottom: none;
+        }
+
+        .detail-log-entry .dl-tick {
+            color: var(--ink-dim);
+            font-size: 9px;
+            margin-right: 4px;
+            font-family: 'Press Start 2P', monospace;
+        }
+
+        .detail-log-entry.your-dmg {
+            color: #86e6a6;
+        }
+
+        .detail-log-entry.enemy-dmg {
+            color: #ff9aa6;
+        }
+
+        .detail-log-entry.heal {
+            color: var(--mist);
+        }
+
+        .detail-log-body::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .detail-log-body::-webkit-scrollbar-thumb {
+            background: var(--edge-lit);
+            border-radius: 3px;
+        }
+
+        /* ============================================
+   INFO MODAL (Changelog / Credits / Disclaimer)
+   ============================================ */
+        .info-fab {
+            position: fixed;
+            bottom: 16px;
+            right: 16px;
+            z-index: 200;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            background: #2a2a3a;
+            color: #fff;
+            font-size: 18px;
+            font-weight: 700;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.15s;
+        }
+
+        .info-fab:hover {
+            transform: scale(1.08);
+            background: #3a3a52;
+        }
+
+        .info-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.65);
+            z-index: 300;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.18s;
+        }
+
+        .info-modal-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .info-modal {
+            width: min(560px, 92vw);
+            height: 80vh;
+            background: #1c1c26;
+            border-radius: 14px;
+            border: 1px solid #3a3a4a;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transform: translateY(10px);
+            transition: transform 0.18s;
+        }
+
+        .info-modal-overlay.open .info-modal {
+            transform: translateY(0);
+        }
+
+        .info-modal-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 18px;
+            border-bottom: 1px solid #33333f;
+            background: #22222e;
+        }
+
+        .info-modal-head h2 {
+            margin: 0;
+            font-size: 16px;
+            color: #fff;
+        }
+
+        .info-modal-close {
+            background: none;
+            border: none;
+            color: #999;
+            font-size: 20px;
+            cursor: pointer;
+            line-height: 1;
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+
+        .info-modal-close:hover {
+            color: #fff;
+            background: #33333f;
+        }
+
+        .info-tabs {
+            display: flex;
+            gap: 4px;
+            padding: 10px 14px 0;
+            background: #22222e;
+        }
+
+        .info-tab {
+            background: none;
+            border: none;
+            color: #999;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .info-tab.active {
+            color: #fff;
+            background: #1c1c26;
+        }
+
+        .info-tab-panels {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+            padding: 16px 20px;
+            color: #ddd;
+            font-size: 13px;
+            line-height: 1.55;
+        }
+
+        .info-tab-panel {
+            display: none;
+        }
+
+        .info-tab-panel.active {
+            display: block;
+        }
+
+        .info-tab-panel h3 {
+            color: #fff;
+            font-size: 14px;
+            margin: 14px 0 6px;
+        }
+
+        .info-tab-panel h3:first-child {
+            margin-top: 0;
+        }
+
+        .info-tab-panel ul {
+            margin: 4px 0 10px 18px;
+            padding: 0;
+        }
+
+        .info-tab-panel li {
+            margin-bottom: 4px;
+        }
+
+        .info-version-tag {
+            color: #777;
+            font-size: 11px;
+            font-weight: 400;
+        }
+
+        .info-credit-name {
+            color: #7ec8ff;
+            font-weight: 700;
+        }
+
+        .info-disclaimer-box {
+            background: #2a2a1c;
+            border: 1px solid #4a4a2a;
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-size: 12px;
+            color: #ddd;
+            margin-top: 6px;
+        }
+
+        .info-modal-foot {
+            padding: 10px 18px;
+            border-top: 1px solid #33333f;
+            background: #22222e;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .info-modal-foot label {
+            font-size: 11px;
+            color: #999;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        .info-modal-foot button {
+            background: #3a5a3a;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 7px 14px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .info-modal-foot button:hover {
+            background: #4a7a4a;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Info button: reopens the changelog/credits panel any time -->
+    <button class="info-fab" id="info-fab-btn" title="Changelog, Credits & Disclaimer">ℹ️</button>
+
+    <div class="info-modal-overlay" id="info-modal-overlay">
+        <div class="info-modal">
+            <div class="info-modal-head">
+                <h2>📋 Info <span class="info-version-tag" id="info-version-tag"></span></h2>
+                <button class="info-modal-close" id="info-modal-close-btn">✕</button>
+            </div>
+            <div class="info-tabs">
+                <button class="info-tab active" data-tab="changelog">Changelog</button>
+                <button class="info-tab" data-tab="credits">Credits</button>
+                <button class="info-tab" data-tab="disclaimer">Disclaimer</button>
+            </div>
+            <div class="info-tab-panels">
+                <div class="info-tab-panel active" data-panel="changelog">
+                    <!-- Add a new entry to the TOP of this list whenever you ship a change. -->
+                    <h3>Latest</h3>
+                    <ul>
+                        <li>add changelog</li>
+                    </ul>
+                </div>
+                <div class="info-tab-panel" data-panel="credits">
+                    <h3>Made by</h3>
+                    <ul>
+                        <li><a href="https://growtopiawiki.com/w/User:MusicMakesYouHappy" target="_blank"
+                                class="info-credit-name">MusicMakesYouHappy</a></li>
+                    </ul>
+                    <h3>Thanks to</h3>
+                    <ul>
+                        <li>Everyone who tested battles and reported bugs/typos</li>
+                        <li>The Growtopia community wiki, for documenting pet abilities</li>
+                    </ul>
+                </div>
+                <div class="info-tab-panel" data-panel="disclaimer">
+                    <h3>Assets</h3>
+                    <div class="info-disclaimer-box">
+                        All pet sprites, sounds, names, and abilities used in this simulator are assets
+                        from <strong>Growtopia</strong>, owned by <strong>Ubisoft</strong>. They are used
+                        here purely for a fan-made, non-commercial battle simulator. No ownership over
+                        these assets is claimed - full credit belongs to Ubisoft / the Growtopia team.
+                    </div>
+                    <h3>This project</h3>
+                    <ul>
+                        <li>Fan-made and unofficial. Not affiliated with or endorsed by Ubisoft or Growtopia.</li>
+                        <li>Not for sale, and not associated with any real-money transactions.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="info-modal-foot">
+                <!-- <label><input type="checkbox" id="info-dont-show-again"> Don't show this again</label> -->
+                <button id="info-modal-got-it-btn">Got it</button>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="team-builder">
+        <div class="panel">
+            <div class="panel-header">🟢 YOUR TEAM</div>
+            <input type="text" class="search-box" placeholder="🔍 Search pets..."
+                oninput="filterPets(this.value, 'your-pet-list')">
+            <div class="deck-slots-area">
+                <h3>Deck 1</h3>
+                <div class="slot-row" id="your-deck1"></div>
+                <h3>Deck 2</h3>
+                <div class="slot-row" id="your-deck2"></div>
+            </div>
+            <div class="pet-list-area" id="your-pet-list"></div>
+        </div>
+        <div class="divider"></div>
+        <div class="panel">
+            <div class="panel-header">🔴 ENEMY TEAM</div>
+            <input type="text" class="search-box" placeholder="🔍 Search pets..."
+                oninput="filterPets(this.value, 'enemy-pet-list')">
+            <div class="deck-slots-area">
+                <h3>Deck 1</h3>
+                <div class="slot-row" id="enemy-deck1"></div>
+                <h3>Deck 2</h3>
+                <div class="slot-row" id="enemy-deck2"></div>
+            </div>
+            <div class="pet-list-area" id="enemy-pet-list"></div>
+        </div>
+        <button id="start-btn">START BATTLE</button>
+    </div>
+
+    <div id="battle-screen"></div>
+
+    <script>
+        let allPets = [];
+        let yourTeam = { deck1: [null, null, null], deck2: [null, null, null] };
+        let enemyTeam = { deck1: [null, null, null], deck2: [null, null, null] };
+
+        fetch('Data/pet_battle_database.json')
+            .then(r => r.json())
+            .then(data => { allPets = data; buildTeamBuilder(); });
+
+        function filterPets(query, containerId) {
+            const container = document.getElementById(containerId);
+            const cards = container.querySelectorAll('.pet-card');
+            const sections = container.querySelectorAll('.element-section');
+            cards.forEach(card => { card.style.display = card.dataset.name.toLowerCase().includes(query.toLowerCase()) ? 'flex' : 'none'; });
+            sections.forEach(section => {
+                const visible = section.querySelectorAll('.pet-card[style*="display: flex"], .pet-card:not([style])').length;
+                section.style.display = visible > 0 ? 'block' : 'none';
+            });
+        }
+
+        function buildTeamBuilder() {
+            ['your', 'enemy'].forEach(owner => {
+                buildPetList(`${owner}-pet-list`, owner);
+                buildSlots(`${owner}-deck1`, owner === 'your' ? yourTeam.deck1 : enemyTeam.deck1, owner, 1);
+                buildSlots(`${owner}-deck2`, owner === 'your' ? yourTeam.deck2 : enemyTeam.deck2, owner, 2);
+            });
+        }
+        function buildPetList(cid, owner) {
+            const c = document.getElementById(cid);
+            ['Air', 'Earth', 'Fire', 'Water'].forEach(el => {
+                const s = document.createElement('div'); s.className = 'element-section';
+                const t = document.createElement('div'); t.className = `element-title element-${el.toLowerCase()}`; t.textContent = el; s.appendChild(t);
+                const g = document.createElement('div'); g.className = 'pet-grid';
+                allPets.filter(p => p.element === el).forEach(pet => {
+                    const card = document.createElement('div'); card.className = 'pet-card'; card.dataset.name = pet.name; card.dataset.owner = owner;
+                    card.innerHTML = `<img src="Sprites/${pet.img}" onerror="this.src='Sprites/0.png'"><div><div class="pet-name">${pet.name}</div><div class="pet-cd ${pet.is_passive ? 'passive' : ''}">${pet.is_passive ? 'Passive' : pet.cooldown + 's'}</div></div><span class="pet-count-badge"></span>`;
+                    card.addEventListener('click', () => addPet(pet, owner, card));
+                    g.appendChild(card);
+                });
+                s.appendChild(g); c.appendChild(s);
+            });
+        }
+        function buildSlots(cid, deck, owner, dnum) {
+            const c = document.getElementById(cid); c.innerHTML = '';
+            for (let i = 0; i < 3; i++) {
+                const sl = document.createElement('div'); sl.className = 'slot'; sl.dataset.owner = owner; sl.dataset.deck = dnum; sl.dataset.slot = i;
+                sl.innerHTML = '<span class="slot-empty">Click pet to add</span>';
+                sl.addEventListener('click', () => removePet(owner, dnum, i));
+                c.appendChild(sl);
+            }
+        }
+        function countInTeam(team, petName) {
+            return team.deck1.filter(p => p && p.name === petName).length + team.deck2.filter(p => p && p.name === petName).length;
+        }
+        function updateCardState(owner, petName) {
+            const team = owner === 'your' ? yourTeam : enemyTeam;
+            const count = countInTeam(team, petName);
+            document.querySelectorAll(`.pet-card[data-owner="${owner}"]`).forEach(c => {
+                if (c.dataset.name !== petName) return;
+                c.classList.remove('in-team', 'partial-team');
+                const badge = c.querySelector('.pet-count-badge');
+                if (count >= 2) { c.classList.add('in-team'); if (badge) badge.textContent = '2/2'; }
+                else if (count === 1) { c.classList.add('partial-team'); if (badge) badge.textContent = '1/2'; }
+                else if (badge) badge.textContent = '';
+            });
+        }
+        function addPet(pet, owner, card) {
+            const team = owner === 'your' ? yourTeam : enemyTeam;
+            if (countInTeam(team, pet.name) >= 2) return;
+            for (let d = 1; d <= 2; d++) {
+                const deck = d === 1 ? team.deck1 : team.deck2;
+                if (deck.some(p => p && p.name === pet.name)) continue;
+                for (let s = 0; s < 3; s++) {
+                    if (deck[s] === null) { deck[s] = { ...pet }; updateCardState(owner, pet.name); refreshAll(); updateBtn(); return; }
+                }
+            }
+        }
+        function removePet(owner, dnum, slot) {
+            const team = owner === 'your' ? yourTeam : enemyTeam;
+            const deck = dnum === 1 ? team.deck1 : team.deck2;
+            const pet = deck[slot]; if (!pet) return;
+            deck[slot] = null;
+            updateCardState(owner, pet.name);
+            refreshAll(); updateBtn();
+        }
+        function refreshAll() {
+            refreshSlots('your-deck1', yourTeam.deck1); refreshSlots('your-deck2', yourTeam.deck2);
+            refreshSlots('enemy-deck1', enemyTeam.deck1); refreshSlots('enemy-deck2', enemyTeam.deck2);
+        }
+        function refreshSlots(cid, deck) {
+            document.getElementById(cid).querySelectorAll('.slot').forEach((sl, i) => {
+                const pet = deck[i]; sl.className = 'slot';
+                if (pet) {
+                    sl.classList.add('filled', pet.element.toLowerCase());
+                    sl.innerHTML = `<img src="Sprites/${pet.img}" onerror="this.src='Sprites/0.png'"><div><div class="slot-name">${pet.name}</div><div class="slot-cd">${pet.is_passive ? 'Passive' : pet.cooldown + 's'} | ${pet.element}</div></div>`;
+                } else sl.innerHTML = '<span class="slot-empty">Click pet to add</span>';
+            });
+        }
+        function updateBtn() {
+            const y = yourTeam.deck1.filter(p => p).length + yourTeam.deck2.filter(p => p).length;
+            const e = enemyTeam.deck1.filter(p => p).length + enemyTeam.deck2.filter(p => p).length;
+            const ready = y === 6 && e === 6;
+            document.getElementById('start-btn').classList.toggle('show', ready);
+        }
+
+        const audioCache = {};
+        function playSound(soundPath) {
+            if (!soundPath) return;
+            if (!audioCache[soundPath]) {
+                audioCache[soundPath] = new Audio(soundPath);
+            }
+            const audio = audioCache[soundPath];
+            audio.currentTime = 0;
+            audio.play().catch(() => { });
+        }
+
+        // ============================================
+        // BATTLE MECHANICS
+        // ============================================
+        let battle = null;
+
+        function initBattle() {
+            battle = {
+                running: true, tick: 0, delayedHits: [], healBacks: [], swapTraps: [],
+                weather: { type: null, remaining: 0, damage: 0, tickRate: 1, tickCounter: 0, heal: 0, fireDmgMod: 0, otherDmgMod: 0, sourceName: '', sourceImg: '0.png' },
+                your: { activeDeck: 1, activePet: 0, livingDeadUsed: false, decks: { 1: { hp: 150, swapCd: 0, pets: [], statusEffects: [], modifiers: {} }, 2: { hp: 150, swapCd: 0, pets: [], statusEffects: [], modifiers: {} } } },
+                enemy: { activeDeck: 1, activePet: 0, livingDeadUsed: false, decks: { 1: { hp: 150, swapCd: 0, pets: [], statusEffects: [], modifiers: {} }, 2: { hp: 150, swapCd: 0, pets: [], statusEffects: [], modifiers: {} } } }
+            };
+            [yourTeam.deck1, yourTeam.deck2].forEach((deck, i) => {
+                const deckNum = i + 1;
+                const hasWindspeed = deck.some(p => p && p.effect === 'passive_cd_reduce');
+                const cdReduce = hasWindspeed ? 2 : 0;
+                battle.your.decks[deckNum].pets = deck.map(p => {
+                    if (!p) return null;
+                    let startCd = p.is_passive ? 0 : Math.floor(p.cooldown / 2);
+                    if (startCd > 12) startCd = 12;
+                    startCd = Math.max(1, startCd - cdReduce);
+                    return { data: p, cd: startCd };
+                });
+                resetModifiers(battle.your.decks[deckNum]);
+            });
+            [enemyTeam.deck1, enemyTeam.deck2].forEach((deck, i) => {
+                const deckNum = i + 1;
+                const hasWindspeed = deck.some(p => p && p.effect === 'passive_cd_reduce');
+                const cdReduce = hasWindspeed ? 2 : 0;
+                battle.enemy.decks[deckNum].pets = deck.map(p => {
+                    if (!p) return null;
+                    let startCd = p.is_passive ? 0 : Math.floor(p.cooldown / 2);
+                    if (startCd > 12) startCd = 12;
+                    startCd = Math.max(1, startCd - cdReduce);
+                    return { data: p, cd: startCd };
+                });
+                resetModifiers(battle.enemy.decks[deckNum]);
+            });
+        }
+
+        function resetModifiers(deck) {
+            deck.modifiers = { damageDealt: 0, damageTaken: 0, nextDamage: 0, doubleDmgChance: 0, rechargeSpeed: 1, messUpChance: 0, canSwap: true, canAct: true, doomedAt: 0, banishedUntil: 0, buffs: [], debuffs: [] };
+        }
+
+        function getDeck(player) { return player.decks[player.activeDeck]; }
+        function getPet(player) { return getDeck(player).pets[player.activePet]; }
+        function inactiveDeck(player) { return player.decks[player.activeDeck === 1 ? 2 : 1]; }
+
+        function getMaxHp(player, deckNum) {
+            const deck = player.decks[deckNum || player.activeDeck];
+            const hasMammoth = deck.pets.some(p => p && p.data && p.data.effect === 'passive_hp_boost');
+            return hasMammoth ? 195 : 150;
+        }
+
+        const ELEMENT_BEATS = { Fire: 'Earth', Earth: 'Air', Air: 'Water', Water: 'Fire' };
+
+        function getDeckElement(deck, activeIdx) {
+            const counts = {};
+            deck.pets.forEach(p => { if (p && p.data) counts[p.data.element] = (counts[p.data.element] || 0) + 1; });
+            const entries = Object.entries(counts);
+            if (entries.length === 0) return null;
+            const maxCount = Math.max(...entries.map(e => e[1]));
+            const leaders = entries.filter(e => e[1] === maxCount).map(e => e[0]);
+            if (leaders.length === 1) return leaders[0];
+            const activePet = deck.pets[activeIdx];
+            return (activePet && activePet.data) ? activePet.data.element : leaders[0];
+        }
+
+        function applyWeather(effectData, sourcePet, owner) {
+            if (!effectData) return;
+            const source = sourcePet ? { name: sourcePet.data.name, img: sourcePet.data.img } : { name: 'Unknown', img: '0.png' };
+            const WEATHER_LOG_TYPE = owner === 'your' ? 'your-dmg' : 'enemy-dmg';
+            switch (effectData.effect) {
+                case 'weather':
+                    if (effectData.isDot && effectData.dotDamage === 8) { battle.weather = { type: 'firestorm', remaining: effectData.dotDuration, damage: 8, tickRate: 2, tickCounter: 0, heal: 0, fireDmgMod: 0, otherDmgMod: 0, sourceName: source.name, sourceImg: source.img }; addLog(`${source.name} ignites a Firestorm — 8 dmg to both active decks every 2s for ${effectData.dotDuration}s!`, WEATHER_LOG_TYPE, owner); }
+                    else if (effectData.isDot && effectData.dotDamage === 4) { battle.weather = { type: 'toxic_cloud', remaining: effectData.dotDuration, damage: 4, tickRate: 5, tickCounter: 0, heal: 0, fireDmgMod: 0, otherDmgMod: 0, sourceName: source.name, sourceImg: source.img }; addLog(`${source.name} spreads a Toxic Cloud — 4 dmg to both active decks every 5s for ${effectData.dotDuration}s!`, WEATHER_LOG_TYPE, owner); }
+                    else if (effectData.effectValue) { battle.weather = { type: 'purple_haze', remaining: effectData.effectDuration, damage: 0, tickRate: 1, tickCounter: 0, heal: 0, fireDmgMod: 25, otherDmgMod: -25, sourceName: source.name, sourceImg: source.img }; addLog(`${source.name} summons Purple Haze — Fire attacks +25%, all others -25% for ${effectData.effectDuration}s!`, WEATHER_LOG_TYPE, owner); }
+                    break;
+                case 'weather_hot': battle.weather = { type: 'soothing_mist', remaining: effectData.effectDuration, damage: 0, tickRate: 5, tickCounter: 0, heal: effectData.heal || 6, fireDmgMod: 0, otherDmgMod: 0, sourceName: source.name, sourceImg: source.img }; addLog(`${source.name} calls in Soothing Mist — heals both active decks ${effectData.heal || 6} HP every 5s for ${effectData.effectDuration}s!`, 'heal', owner); break;
+                case 'sleep': battle.weather = { type: 'count_sheep', remaining: effectData.effectDuration, damage: 0, tickRate: 1, tickCounter: 0, heal: 0, fireDmgMod: 0, otherDmgMod: 0, sourceName: source.name, sourceImg: source.img }; addLog(`${source.name} starts Count Sheep — both active decks will be put to sleep for ${effectData.effectDuration}s!`, WEATHER_LOG_TYPE, owner); break;
+            }
+        }
+
+        const SELF_BUFFS = ['buff_damage_dealt', 'buff_chance_double_damage', 'buff_next_damage', 'buff_damage_and_speed', 'fast_recharge'];
+        const ENEMY_STATUS_EFFECTS = ['stun', 'freeze', 'trauma'];
+        const SELF_STATUS_EFFECTS = ['dodge', 'block'];
+        const WEATHER_EFFECTS = ['weather', 'weather_hot', 'sleep'];
+        // Effects whose "damage" field must NOT be dealt via the generic direct-hit path in the click/AI handlers,
+        // because handlePetEffect computes/deals the damage itself (random amount, drain-then-heal, or no immediate hit at all).
+        const SPECIAL_DAMAGE_EFFECTS = ['cleanse', 'random_damage', 'life_drain', 'counter', 'thorns', 'desperate', 'random_element', 'elemental_bonus', 'summon', 'stack_burst', 'stacking_build'];
+
+        function dealDamage(player, amount, attackerPet) {
+            let finalDmg = amount;
+            const deck = getDeck(player);
+            const activePet = getPet(player);
+            const attackerDeck = attackerPet ? getDeck(attackerPet === getPet(battle.your) ? battle.your : battle.enemy) : null;
+            // Precision dino line (anti_dodge_block_conditional) normally pierces dodge/block for a bonus hit,
+            // but per wiki trivia: "Soaring can never trigger any damage boosts caused by Precision and Critical
+            // dino abilities when its target is dodging or blocking." So if the defender's dodge is specifically
+            // coming from Yeonnalligi's Soaring passive, the Precision pierce does NOT apply — Soaring's dodge
+            // wins and the attack is dodged normally.
+            const targetSoaringDodge = activePet && activePet.data && activePet.data.effect === 'passive_dodge' && activePet.data.ability === 'Soaring';
+            const isConditionalPrecision = attackerPet && attackerPet.data && attackerPet.data.effect === 'anti_dodge_block_conditional';
+            const ignoresDodge = attackerPet && attackerPet.data && (['anti_dodge', 'anti_dodge_block', 'mess_up_undodgeable'].includes(attackerPet.data.effect) || (isConditionalPrecision && !targetSoaringDodge));
+            const ignoresBlock = attackerPet && attackerPet.data && (['anti_block', 'anti_dodge_block'].includes(attackerPet.data.effect) || (isConditionalPrecision && !targetSoaringDodge));
+            const isToasties = attackerPet && attackerPet.data && attackerPet.data.ability === 'Toasties';
+            const isConsumeBuff = attackerPet && attackerPet.data && attackerPet.data.effect === 'consume_buff';
+            if (battle.weather && battle.weather.remaining > 0 && battle.weather.type === 'purple_haze') {
+                if (attackerPet && attackerPet.data && attackerPet.data.element === 'Fire') finalDmg = Math.floor(finalDmg * (1 + battle.weather.fireDmgMod / 100));
+                else if (attackerPet && attackerPet.data && attackerPet.data.element !== 'Fire') finalDmg = Math.floor(finalDmg * (1 + battle.weather.otherDmgMod / 100));
+            }
+            if (!isToasties && attackerPet && attackerDeck) {
+                const attackerPlayer = (attackerPet === getPet(battle.your)) ? battle.your : battle.enemy;
+                const defenderPlayer = player;
+                const atkEl = getDeckElement(attackerDeck, attackerPlayer.activePet);
+                const defEl = getDeckElement(deck, defenderPlayer.activePet);
+                if (atkEl && defEl) {
+                    if (ELEMENT_BEATS[atkEl] === defEl) finalDmg = Math.floor(finalDmg * 1.25);
+                    else if (ELEMENT_BEATS[defEl] === atkEl) finalDmg = Math.floor(finalDmg * 0.75);
+                }
+            }
+            if (!ignoresDodge) {
+                const hasDodge = deck.statusEffects.some(e => e.type === 'dodge' && e.remaining > 0);
+                if (hasDodge || (activePet && activePet.data && activePet.data.effect === 'passive_dodge' && Math.random() * 100 < activePet.data.effectValue)) { addLog(`${activePet ? activePet.data.name : 'Pet'} dodged!`, 'heal', player === battle.your ? 'your' : 'enemy'); return 0; }
+            }
+            if (!ignoresBlock) { if (deck.statusEffects.some(e => e.type === 'block' && e.remaining > 0)) { addLog(`Blocked!`, 'heal', player === battle.your ? 'your' : 'enemy'); return 0; } }
+            // Ethereal (Mist Form, Mysterious Beam) — NOT a dodge chance; the wiki is explicit that it's a flat
+            // damage-taken reduction ("reducing all damage taken by 50%" / "taking 50% less damage").
+            if (!isToasties) {
+                const etherealEntry = deck.statusEffects.find(e => e.type === 'ethereal' && e.remaining > 0);
+                if (etherealEntry) finalDmg = Math.floor(finalDmg * (1 - etherealEntry.percent / 100));
+            }
+            if (!isToasties && !isConsumeBuff && attackerDeck) {
+                if (attackerDeck.modifiers.doubleDmgChance > 0 && Math.random() * 100 < attackerDeck.modifiers.doubleDmgChance) finalDmg *= 2;
+                if (attackerDeck.modifiers.nextDamage > 0) { finalDmg = Math.floor(finalDmg * (1 + attackerDeck.modifiers.nextDamage / 100)); attackerDeck.modifiers.buffs = attackerDeck.modifiers.buffs.filter(b => b.type !== 'next_dmg'); attackerDeck.modifiers.nextDamage = 0; }
+                if (attackerDeck.modifiers.damageDealt !== 0) finalDmg = Math.floor(finalDmg * (1 + attackerDeck.modifiers.damageDealt / 100));
+            }
+            if (!isToasties && deck.modifiers.damageTaken !== 0) finalDmg = Math.floor(finalDmg * (1 + deck.modifiers.damageTaken / 100));
+            if (!isToasties && activePet && activePet.data && activePet.data.effect === 'passive_dmg_reduce') finalDmg = Math.floor(finalDmg * 0.75);
+
+            // Play hit sound
+            if (attackerPet && attackerPet.data && attackerPet.data.hitSound) {
+                playSound(attackerPet.data.hitSound);
+            }
+
+            finalDmg = Math.max(1, finalDmg);
+
+            // Absorb — fully nullifies the hit and heals for the amount that would have been dealt.
+            // Trauma blocks the healing part but not the damage-negation part.
+            const absorbEntry = deck.statusEffects.find(e => e.type === 'absorb' && e.remaining > 0);
+            if (absorbEntry) {
+                const hasTrauma = deck.statusEffects.some(e => e.type === 'trauma' && e.remaining > 0);
+                if (!hasTrauma) {
+                    deck.hp = Math.min(getMaxHp(player), deck.hp + finalDmg);
+                    addLog(`${absorbEntry.sourceName}'s Absorb nullifies the hit and heals ${finalDmg} HP!`, 'heal', player === battle.your ? 'your' : 'enemy');
+                } else {
+                    addLog(`${absorbEntry.sourceName}'s Absorb nullifies the hit, but Trauma blocks the healing!`, 'heal', player === battle.your ? 'your' : 'enemy');
+                }
+                return 0;
+            }
+
+            deck.hp = Math.max(0, deck.hp - finalDmg);
+
+            // Static Charge (stack_burst - Betty Bluetooth Doll) — gains 1 charge (capped at effectValue) every
+            // time this pet's deck takes damage, regardless of whether it's the currently selected active pet.
+            deck.pets.forEach(p => { if (p && p.data && p.data.effect === 'stack_burst') p.charge = Math.min((p.charge || 0) + 1, p.data.effectValue); });
+
+            // Counter / Thorns — reflect a flat amount back at the attacker when a hit actually lands
+            const counterBuff = deck.modifiers.buffs.find(b => b.type === 'counter_reflect' && b.remaining > 0);
+            if (counterBuff && attackerDeck) {
+                attackerDeck.hp = Math.max(0, attackerDeck.hp - counterBuff.value);
+                addLog(`${counterBuff.sourceName} reflects ${counterBuff.value} damage!`, player === battle.your ? 'your-dmg' : 'enemy-dmg', player === battle.your ? 'your' : 'enemy');
+            }
+
+            return finalDmg;
+        }
+
+        function exoReduction(deck) { return deck.pets.some(p => p && p.data && p.data.effect === 'passive_shorten_debuff') ? 2 : 0; }
+        function tryResist(deck, owner) {
+            const duck = deck.pets.find(p => p && p.data && p.data.effect === 'passive_resist_negative');
+            if (duck && (deck.duckBackCd || 0) <= 0) {
+                deck.duckBackCd = duck.data.effectDuration || 30;
+                addLog(`${duck.data.name} resists with Duck's Back!`, 'heal', owner);
+                return true;
+            }
+            return false;
+        }
+
+        // 通用的buff/debuff写入逻辑：同一个来源重新施放=刷新持续时间；不同来源=各自独立共存；
+        // 属于叠层类的宠物按来源名各自叠加，不再共用同一个池子
+        // Shared upsert logic: same source reapplying refreshes the timer; different sources coexist as
+        // separate entries; stacking pets stack per-source instead of sharing one pool
+        function upsertModifierEntry(list, type, entry, isStackingPool) {
+            if (isStackingPool) {
+                // Stacking: find an existing entry from the SAME source, increment value, refresh duration
+                const existing = list.find(x => x.type === type && x.sourceName === entry.sourceName);
+                if (existing) {
+                    existing.value = Math.min(existing.value + entry.value, entry.cap || 400);
+                    existing.remaining = Math.max(existing.remaining, entry.remaining);
+                    existing.duration = existing.remaining;
+                    return;
+                }
+                entry.cap = entry.cap || 400;
+                list.push(entry);
+                return;
+            }
+            // Non-stacking: same source just refreshes duration; different sources coexist
+            const existing = list.find(x => x.type === type && x.sourceName === entry.sourceName);
+            if (existing) { existing.value = entry.value; existing.remaining = entry.remaining; existing.duration = entry.duration; return; }
+            list.push(entry);
+        }
+
+        function applyModifiers(deck, effectData, isSelf, sourcePet, owner) {
+            if (!effectData || effectData.effect === 'none') return;
+            const source = sourcePet ? { name: sourcePet.data.name, img: sourcePet.data.img } : { name: 'Unknown', img: '0.png' };
+            const stackingPets = ['Strawberry Slime', 'Leashed Silkworm - Purple', 'Pet Present Goblin'];
+            const isStacking = sourcePet && stackingPets.includes(sourcePet.data.name);
+            if (!isSelf && tryResist(deck, owner)) return;
+            const dur = !isSelf ? Math.max(0, effectData.effectDuration - exoReduction(deck)) : effectData.effectDuration;
+            // casterOwner/casterType drive the log's color + which side's floating box it appears under —
+            // always attributed to whoever CAST the move, not whichever deck is being modified.
+            const casterOwner = isSelf ? owner : (owner === 'your' ? 'enemy' : 'your');
+            const casterType = casterOwner === 'your' ? 'your-dmg' : 'enemy-dmg';
+            switch (effectData.effect) {
+                case 'buff_damage_dealt':
+                    if (isSelf) { upsertModifierEntry(deck.modifiers.buffs, 'buff_damage', { type: 'buff_damage', value: effectData.effectValue, remaining: effectData.effectDuration, duration: effectData.effectDuration, sourceName: source.name, sourceImg: source.img, cap: 400 }, isStacking); addLog(`${source.name} boosts its own damage by ${effectData.effectValue}% for ${effectData.effectDuration}s!`, 'heal', casterOwner); }
+                    else { upsertModifierEntry(deck.modifiers.debuffs, 'debuff_damage', { type: 'debuff_damage', value: effectData.effectValue, remaining: dur, duration: dur, sourceName: source.name, sourceImg: source.img, cap: 400 }, isStacking); addLog(`${source.name} weakens the foe's damage by ${effectData.effectValue}% for ${dur}s!`, casterType, casterOwner); }
+                    break;
+                case 'debuff_damage_dealt':
+                    upsertModifierEntry(deck.modifiers.debuffs, 'debuff_damage', { type: 'debuff_damage', value: effectData.effectValue, remaining: dur, duration: dur, sourceName: source.name, sourceImg: source.img, cap: 400 }, isStacking);
+                    addLog(`${source.name} enrages the foe: -${effectData.effectValue}% damage dealt for ${dur}s!`, casterType, casterOwner);
+                    break;
+                case 'buff_chance_double_damage': upsertModifierEntry(deck.modifiers.buffs, 'double_dmg', { type: 'double_dmg', value: effectData.effectValue, remaining: effectData.effectDuration, duration: effectData.effectDuration, sourceName: source.name, sourceImg: source.img }, false); addLog(`${source.name} gains a ${effectData.effectValue}% chance to double damage for ${effectData.effectDuration}s!`, 'heal', casterOwner); break;
+                case 'buff_next_damage': upsertModifierEntry(deck.modifiers.buffs, 'next_dmg', { type: 'next_dmg', value: effectData.effectValue, remaining: 99, duration: 99, sourceName: source.name, sourceImg: source.img }, false); addLog(`${source.name} charges up: next hit deals +${effectData.effectValue}% damage!`, 'heal', casterOwner); break;
+                case 'buff_damage_and_speed': upsertModifierEntry(deck.modifiers.buffs, 'dmg_speed', { type: 'dmg_speed', value: effectData.effectValue, remaining: effectData.effectDuration, duration: effectData.effectDuration, sourceName: source.name, sourceImg: source.img }, false); addLog(`${source.name} pumps up the squad: +${effectData.effectValue}% damage & 2x recharge speed for ${effectData.effectDuration}s!`, 'heal', casterOwner); break;
+                case 'fast_recharge': upsertModifierEntry(deck.modifiers.buffs, 'fast_cd', { type: 'fast_cd', value: effectData.effectValue, remaining: effectData.effectDuration, duration: effectData.effectDuration, sourceName: source.name, sourceImg: source.img }, false); addLog(`${source.name} speeds up the squad's recharge for ${effectData.effectDuration}s!`, 'heal', casterOwner); break;
+                case 'debuff_damage_taken': upsertModifierEntry(deck.modifiers.debuffs, 'dmg_taken', { type: 'dmg_taken', value: effectData.effectValue, remaining: dur, duration: dur, sourceName: source.name, sourceImg: source.img, cap: 200 }, isStacking); addLog(`${source.name} makes the foe take +${effectData.effectValue}% damage for ${dur}s!`, casterType, casterOwner); break;
+                case 'debuff_damage_both': upsertModifierEntry(deck.modifiers.debuffs, 'bad_luck', { type: 'bad_luck', value: effectData.effectValue, remaining: dur, duration: dur, sourceName: source.name, sourceImg: source.img }, false); addLog(`${source.name} curses the foe with Bad Luck: -${effectData.effectValue}% dealt, +${effectData.effectValue}% taken for ${dur}s!`, casterType, casterOwner); break;
+                case 'slow_recharge': upsertModifierEntry(deck.modifiers.debuffs, 'slow_cd', { type: 'slow_cd', value: effectData.effectValue, remaining: dur, duration: dur, sourceName: source.name, sourceImg: source.img }, false); addLog(`${source.name} slows the foe's recharge for ${dur}s!`, casterType, casterOwner); break;
+                case 'mess_up': upsertModifierEntry(deck.modifiers.debuffs, 'mess_up', { type: 'mess_up', value: effectData.effectValue, remaining: dur, duration: dur, sourceName: source.name, sourceImg: source.img }, false); addLog(`${source.name} rattles the foe: ${effectData.effectValue}% chance to fumble their next casts for ${dur}s!`, casterType, casterOwner); break;
+                case 'anti_swap': upsertModifierEntry(deck.modifiers.debuffs, 'no_swap', { type: 'no_swap', value: 0, remaining: dur, duration: dur, sourceName: source.name, sourceImg: source.img }, false); addLog(`${source.name} locks the foe in place for ${dur}s — they can't swap!`, casterType, casterOwner); break;
+                case 'force_dance':
+                    deck.statusEffects.push({ type: 'dance', duration: dur, remaining: dur, sourceName: source.name, sourceImg: source.img });
+                    if (sourcePet && sourcePet.data && sourcePet.data.ability === 'Disco Fever') { deck.statusEffects.push({ type: 'dodge', duration: dur, remaining: dur, sourceName: source.name, sourceImg: source.img }); addLog(`${source.name} forces the foe to dance for ${dur}s, and grants them Dodge for the same window!`, casterType, casterOwner); }
+                    else addLog(`${source.name} forces the foe to dance for ${dur}s!`, casterType, casterOwner);
+                    deck.modifiers.canAct = false;
+                    break;
+            }
+            recomputeModifiers(deck);
+        }
+
+        function applyStatusEffect(deck, effectData, sourcePet, owner) {
+            if (!effectData || effectData.effect === 'none') return;
+            const source = sourcePet ? { name: sourcePet.data.name, img: sourcePet.data.img } : { name: 'Unknown', img: '0.png' };
+            const isDebuff = ['stun', 'freeze', 'trauma'].includes(effectData.effect);
+            if (isDebuff && tryResist(deck, owner)) return;
+            const dur = isDebuff ? Math.max(0, effectData.effectDuration - exoReduction(deck)) : effectData.effectDuration;
+            // isDebuff cases (stun/freeze/trauma) are always cast onto the enemy, so `owner` here is the
+            // target's key and the caster is the other side; dodge/block are self-cast, so `owner` here
+            // already IS the caster's key.
+            const casterOwner = isDebuff ? (owner === 'your' ? 'enemy' : 'your') : owner;
+            const casterType = casterOwner === 'your' ? 'your-dmg' : 'enemy-dmg';
+            switch (effectData.effect) {
+                case 'stun': deck.statusEffects.push({ type: 'stun', duration: dur, remaining: dur, sourceName: source.name, sourceImg: source.img }); addLog(`${source.name} stuns the foe for ${dur}s!`, casterType, casterOwner); break;
+                case 'freeze': deck.statusEffects.push({ type: 'freeze', duration: dur, remaining: dur, sourceName: source.name, sourceImg: source.img }); addLog(`${source.name} freezes the foe solid for ${dur}s — they can't act or swap!`, casterType, casterOwner); break;
+                case 'trauma': deck.statusEffects.push({ type: 'trauma', duration: dur, remaining: dur, sourceName: source.name, sourceImg: source.img }); addLog(`${source.name} inflicts Trauma for ${dur}s — all healing is blocked!`, casterType, casterOwner); break;
+                case 'dodge': deck.statusEffects.push({ type: 'dodge', duration: dur, remaining: dur, sourceName: source.name, sourceImg: source.img }); addLog(`${source.name} readies a Dodge for ${dur}s!`, 'heal', casterOwner); break;
+                case 'block': deck.statusEffects.push({ type: 'block', duration: dur, remaining: dur, sourceName: source.name, sourceImg: source.img }); addLog(`${source.name} raises a Block for ${dur}s!`, 'heal', casterOwner); break;
+            }
+        }
+
+        function useAbility(player) {
+            const deck = getDeck(player);
+            const pet = getPet(player);
+            if (!pet || pet.cd > 0 || pet.data.is_passive) return false;
+            const isDisabled = deck.statusEffects.some(e => ['stun', 'freeze', 'sleep', 'dance'].includes(e.type) && e.remaining > 0);
+            if (isDisabled || !deck.modifiers.canAct) return false;
+            if (deck.modifiers.messUpChance > 0 && Math.random() * 100 < deck.modifiers.messUpChance) {
+                addLog('Ability failed!', 'enemy-dmg', player === battle.your ? 'your' : 'enemy');
+                pet.cd = Math.max(1, pet.data.cooldown);
+                if (pet.data.ability === 'Swoop') deck.statusEffects.push({ type: 'dodge', duration: pet.data.effectDuration, remaining: pet.data.effectDuration, sourceName: pet.data.name, sourceImg: pet.data.img });
+                if (WEATHER_EFFECTS.includes(pet.data.effect)) applyWeather(pet.data, pet, player === battle.your ? 'your' : 'enemy');
+                if (pet.data.effect === 'throw_teammate') {
+                    // Per wiki trivia: the "messed up = partner spared" rule does NOT hold if the attack is
+                    // dodged or blocked — in that case the partner is still instantly KO'd despite the mess-up.
+                    const enemyPlayer = player === battle.your ? battle.enemy : battle.your;
+                    const enemyDeck = getDeck(enemyPlayer);
+                    const enemyDodgingOrBlocking = enemyDeck.statusEffects.some(e => (e.type === 'dodge' || e.type === 'block') && e.remaining > 0);
+                    if (enemyDodgingOrBlocking) {
+                        const otherNum = player.activeDeck === 1 ? 2 : 1;
+                        const partnerDeck = player.decks[otherNum];
+                        if (partnerDeck.hp > 0) {
+                            partnerDeck.hp = 0;
+                            addLog(`${pet.data.name}'s failed throw still knocks out its own partner!`, player === battle.your ? 'your-dmg' : 'enemy-dmg', player === battle.your ? 'your' : 'enemy');
+                        }
+                    }
+                }
+                return false;
+            }
+            const hasWindspeed = deck.pets.some(p => p && p.data && p.data.effect === 'passive_cd_reduce');
+            pet.cd = Math.max(1, pet.data.cooldown - (hasWindspeed ? 2 : 0));
+            const extendDebuff = deck.modifiers.debuffs.find(db => db.type === 'extend_cd');
+            if (extendDebuff) {
+                pet.cd += extendDebuff.value;
+                deck.modifiers.debuffs = deck.modifiers.debuffs.filter(db => db !== extendDebuff);
+                addLog(`${pet.data.name}'s cooldown is chilled ${extendDebuff.value}s longer by ${extendDebuff.sourceName}!`, 'enemy-dmg', player === battle.your ? 'your' : 'enemy');
+            }
+            deck.pets.forEach((p, i) => { if (i !== player.activePet && p && p.cd <= 0 && !p.data.is_passive) p.cd = 2; });
+            return true;
+        }
+
+        function swapDeck(player) {
+            const deck = getDeck(player);
+            if (deck.swapCd > 0) return false;
+            if (deck.statusEffects.some(e => e.type === 'freeze' && e.remaining > 0) || !deck.modifiers.canSwap) return false;
+            // Trap Swap (Lockjaw!, Surprise!) — springs if the trapped player retreats/swaps while the trap is armed.
+            if (battle.swapTraps && battle.swapTraps.length) {
+                const targetKey = player === battle.your ? 'your' : 'enemy';
+                const sprung = battle.swapTraps.filter(t => t.targetKey === targetKey && t.ticksLeft > 0);
+                sprung.forEach(t => {
+                    const dmg1 = dealDamage(player, t.amount, null);
+                    addLog(`${t.sourceName}'s trap springs for ${dmg1} damage!`, t.ownerKey === 'your' ? 'your-dmg' : 'enemy-dmg', t.ownerKey);
+                    if (t.hitBoth) {
+                        const otherNum = player.activeDeck === 1 ? 2 : 1;
+                        const otherDeck = player.decks[otherNum];
+                        if (otherDeck.hp > 0) {
+                            const original = player.activeDeck; player.activeDeck = otherNum;
+                            const dmg2 = dealDamage(player, t.amount, null);
+                            player.activeDeck = original;
+                            addLog(`${t.sourceName}'s trap also hits the other deck for ${dmg2} damage!`, t.ownerKey === 'your' ? 'your-dmg' : 'enemy-dmg', t.ownerKey);
+                        }
+                    }
+                });
+                battle.swapTraps = battle.swapTraps.filter(t => !(t.targetKey === targetKey && t.ticksLeft > 0));
+            }
+            deck.statusEffects = deck.statusEffects.filter(e => e.type !== 'doom'); // swapping away cancels Doom
+            player.activeDeck = player.activeDeck === 1 ? 2 : 1; player.activePet = 0;
+            const newDeck = getDeck(player); newDeck.swapCd = 3;
+            const hasWindspeed = newDeck.pets.some(p => p && p.data && p.data.effect === 'passive_cd_reduce');
+            if (!hasWindspeed) newDeck.pets.forEach(p => { if (p && p.cd <= 0 && !p.data.is_passive) p.cd = 2; });
+            return true;
+        }
+
+        function selectPet(player, index) { if (!getDeck(player).pets[index]) return false; player.activePet = index; return true; }
+
+        function addLog(msg, type, owner) {
+            const logId = owner === 'your' ? 'your-log' : 'enemy-log';
+            const area = document.getElementById(logId);
+            if (area) {
+                area.innerHTML = '';
+                const el = document.createElement('span'); el.className = 'log-msg';
+                if (type === 'your-dmg') el.style.cssText = 'background:#2a4a2a;color:#5f5;';
+                else if (type === 'enemy-dmg') el.style.cssText = 'background:#4a2a2a;color:#f55;';
+                else el.style.cssText = 'background:#2a2a4a;color:#88f;';
+                el.textContent = msg; area.appendChild(el); setTimeout(() => el.remove(), 2200);
+            }
+            addDetailedLog(msg, type, owner);
+        }
+
+        function addDetailedLog(msg, type, owner) {
+            const body = document.getElementById('detail-log-body'); if (!body) return;
+            const entry = document.createElement('div'); entry.className = `detail-log-entry ${type || ''}`;
+            const tickLabel = battle ? `${battle.tick}s` : '0s';
+            const who = owner === 'your' ? '🟢' : owner === 'enemy' ? '🔴' : '';
+            entry.innerHTML = `<span class="dl-tick">[${tickLabel}]</span>${who} ${msg}`;
+            body.appendChild(entry);
+            body.scrollTop = body.scrollHeight;
+            while (body.children.length > 100) body.removeChild(body.firstChild);
+            const counter = document.getElementById('dl-count'); if (counter) counter.textContent = body.children.length;
+        }
+
+        function toggleDetailLog() {
+            const panel = document.getElementById('detail-log-panel'); if (!panel) return;
+            panel.classList.toggle('minimized');
+            const btn = document.getElementById('dl-toggle-btn'); if (btn) btn.textContent = panel.classList.contains('minimized') ? '▸' : '▾';
+        }
+
+        function applyPassives(player) {
+            [1, 2].forEach(deckNum => {
+                const deck = player.decks[deckNum];
+                deck.pets.forEach((pet, idx) => {
+                    if (!pet || !pet.data) return;
+                    if (pet.data.is_passive && pet.data.effect === 'passive_heal_inactive') {
+                        const isActivePet = (deckNum === player.activeDeck && idx === player.activePet);
+                        if (!isActivePet && battle.tick % 5 === 0) {
+                            if (deck.hp > 0 && !deck.statusEffects.some(e => e.type === 'trauma' && e.remaining > 0)) deck.hp = Math.min(getMaxHp(player, deckNum), deck.hp + pet.data.heal);
+                        }
+                    }
+                    // Auto-attack while benched/inactive (Party Fowl) — is_passive:false in the database (it
+                    // still has its own clickable ability), but on top of that it pecks the enemy for flat
+                    // damage every [cooldown]s while it is NOT the currently selected active pet — whether that's
+                    // because another pet in its deck is active, or its whole deck is swapped to the backup.
+                    if (pet.data.effect === 'auto_attack_inactive' && deck.hp > 0) {
+                        const isActivePet = (deckNum === player.activeDeck && idx === player.activePet);
+                        if (!isActivePet) {
+                            const interval = pet.data.cooldown || 5;
+                            if (battle.tick % interval === 0) {
+                                const targetPlayer = player === battle.your ? battle.enemy : battle.your;
+                                if (getDeck(targetPlayer).hp > 0) {
+                                    const dmg = dealDamage(targetPlayer, pet.data.damage, pet);
+                                    addLog(`${pet.data.name} pecks from the bench for ${dmg} damage!`, player === battle.your ? 'your-dmg' : 'enemy-dmg', player === battle.your ? 'your' : 'enemy');
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+        }
+
+        function getPassiveDesc(pet, deck) {
+            switch (pet.effect) {
+                case 'passive_cd_reduce': return 'All cooldowns -2s';
+                case 'passive_hp_boost': return 'Max HP +30%';
+                case 'passive_dmg_reduce': return 'Take -25% damage';
+                case 'passive_heal_inactive': return `Heal ${pet.heal} HP every 5s when inactive`;
+                case 'passive_dodge': return `${pet.effectValue}% dodge chance`;
+                case 'passive_shorten_debuff': return 'Negative effect durations -2s';
+                case 'passive_resist_negative': {
+                    const cd = deck ? (deck.duckBackCd || 0) : 0;
+                    return cd > 0 ? `On cooldown — resists again in ${cd}s` : 'Ready — will auto-resist the next negative effect';
+                }
+                case 'passive_revive': {
+                    let owner = null;
+                    if (typeof battle !== 'undefined' && battle) {
+                        if (deck === battle.your.decks[1] || deck === battle.your.decks[2]) owner = battle.your;
+                        else if (deck === battle.enemy.decks[1] || deck === battle.enemy.decks[2]) owner = battle.enemy;
+                    }
+                    const used = owner ? owner.livingDeadUsed : false;
+                    return used ? 'Used — already triggered this battle' : `While benched: revives this pet's active partner deck with ${pet.effectValue}% HP the instant it dies (once per battle)`;
+                }
+                default: return pet.ability;
+            }
+        }
+
+        function handlePetEffect(pet, sourceDeck, targetDeck, owner) {
+            if (!pet.data.effect || pet.data.effect === 'none') return;
+
+            // Weather
+            if (WEATHER_EFFECTS.includes(pet.data.effect)) { applyWeather(pet.data, pet, owner); return; }
+
+            // Disco Fever / Just Dance (dance + DoT)
+            if (pet.data.effect === 'force_dance') {
+                applyModifiers(targetDeck, pet.data, false, pet, owner === 'your' ? 'enemy' : 'your');
+                if (!pet.data.isDot) return;
+            }
+
+            // Self DoT (Flaming Tongue - Demon Control Cap) — MUST be checked before the generic isDot branch
+            // below. Demon Control Cap has isDot:true in the database (so its burn ticks like any other DoT),
+            // but the burn belongs to the CASTER, not the target. Checking isDot first was applying the burn to
+            // the enemy instead of the user — this was the bug.
+            if (pet.data.effect === 'self_dot') {
+                sourceDeck.statusEffects.push({ type: 'dot', damage: pet.data.dotDamage, remaining: pet.data.dotDuration, duration: pet.data.dotDuration, sourceName: pet.data.name, sourceImg: pet.data.img });
+                addLog(`${pet.data.name} is burned by its own curse!`, 'enemy-dmg', owner);
+                return;
+            }
+
+            // Heal over Time (hot - Pet Slime's Regrowth) — MUST be checked before the generic isDot branch
+            // below, same reason as self_dot: Regrowth has isDot:true so its ticking works like a DoT, but it
+            // heals the CASTER over time rather than damaging the enemy.
+            if (pet.data.effect === 'hot') {
+                sourceDeck.statusEffects.push({ type: 'hot', heal: pet.data.dotDamage, remaining: pet.data.dotDuration, duration: pet.data.dotDuration, sourceName: pet.data.name, sourceImg: pet.data.img });
+                addLog(`${pet.data.name} starts regrowing, healing ${pet.data.dotDamage} HP/s for ${pet.data.dotDuration}s!`, owner === 'your' ? 'your-dmg' : 'enemy-dmg', owner);
+                return;
+            }
+
+            // DoT
+            if (pet.data.isDot) {
+                if (tryResist(targetDeck, owner === 'your' ? 'enemy' : 'your')) return;
+                const dur = Math.max(0, pet.data.dotDuration - exoReduction(targetDeck));
+                targetDeck.statusEffects.push({ type: 'dot', damage: pet.data.dotDamage, remaining: dur, duration: dur, sourceName: pet.data.name, sourceImg: pet.data.img });
+                addLog(`${pet.data.name} inflicts a burn: ${pet.data.dotDamage}/s for ${dur}s!`, owner === 'your' ? 'your-dmg' : 'enemy-dmg', owner);
+                return;
+            }
+
+            // Enemy-targeted status effects (stun, freeze, trauma)
+            if (ENEMY_STATUS_EFFECTS.includes(pet.data.effect)) { applyStatusEffect(targetDeck, pet.data, pet, owner === 'your' ? 'enemy' : 'your'); return; }
+
+            // Self-targeted status effects (dodge, block)
+            if (SELF_STATUS_EFFECTS.includes(pet.data.effect)) { applyStatusEffect(sourceDeck, pet.data, pet, owner); return; }
+
+            // Revive (Onisim's Genie)
+            if (pet.data.effect === 'revive') {
+                const player = owner === 'your' ? battle.your : battle.enemy;
+                const partnerDeck = inactiveDeck(player);
+                if (partnerDeck.hp <= 0) {
+                    const partnerNum = player.activeDeck === 1 ? 2 : 1;
+                    partnerDeck.hp = Math.floor(getMaxHp(player, partnerNum) * pet.data.effectValue / 100);
+                    addLog(`${pet.data.name} revives the fallen deck!`, 'heal', owner);
+                }
+                return;
+            }
+
+            // Cleanse (Toss Cookies) — with damage per debuff
+            if (pet.data.effect === 'cleanse') {
+                const statusNames = { stun: 'Stun', freeze: 'Freeze', trauma: 'Trauma', dot: 'DoT', dance: 'Dance', sleep: 'Sleep' };
+                const debuffNames = { dmg_taken: 'Dmg Taken', debuff_damage: 'Dmg Down', bad_luck: 'Bad Luck', slow_cd: 'Slow CD', mess_up: 'Mess Up', no_swap: 'No Swap' };
+                const removedNames = [
+                    ...sourceDeck.statusEffects.filter(e => statusNames[e.type]).map(e => `${statusNames[e.type]} (${e.sourceName})`),
+                    ...sourceDeck.modifiers.debuffs.map(db => `${debuffNames[db.type] || db.type} (${db.sourceName})`)
+                ];
+                const totalRemoved = removedNames.length;
+                sourceDeck.statusEffects = sourceDeck.statusEffects.filter(e => !statusNames[e.type]);
+                sourceDeck.modifiers.debuffs = [];
+                recomputeModifiers(sourceDeck);
+                if (totalRemoved > 0 && pet.data.damage > 0) {
+                    const targetPlayer = owner === 'your' ? battle.enemy : battle.your;
+                    const dmg = dealDamage(targetPlayer, pet.data.damage * totalRemoved, pet);
+                    addLog(`${pet.data.name} purges ${totalRemoved} effect${totalRemoved > 1 ? 's' : ''} [${removedNames.join(', ')}] and deals ${dmg} damage!`, 'your-dmg', owner);
+                } else {
+                    addLog(`${pet.data.name} purges negative effects!`, 'heal', owner);
+                }
+                return;
+            }
+
+            // Slow recharge (Spit Mud / Mud Glob) — also affects partner deck
+            if (pet.data.effect === 'slow_recharge') {
+                applyModifiers(targetDeck, pet.data, false, pet, owner === 'your' ? 'enemy' : 'your');
+                const targetPlayer = owner === 'your' ? battle.enemy : battle.your;
+                const partnerDeck = inactiveDeck(targetPlayer);
+                if (partnerDeck && partnerDeck.hp > 0) {
+                    applyModifiers(partnerDeck, pet.data, false, pet, owner === 'your' ? 'enemy' : 'your');
+                }
+                return;
+            }
+
+            // Extend Cooldown (Penguin Leash's Frosty Slide, Haunted Synthoid's Draining Beam) — chills the
+            // target: if its active pet is already recharging, add straight to that timer; otherwise arm a
+            // timed debuff so its next ability use within the window costs extra recharge time.
+            if (pet.data.effect === 'extend_cooldown') {
+                const targetPlayer = owner === 'your' ? battle.enemy : battle.your;
+                const targetPet = getPet(targetPlayer);
+                if (targetPet && targetPet.cd > 0) {
+                    targetPet.cd += pet.data.effectValue;
+                    addLog(`${pet.data.name} chills ${targetPet.data.name}, extending its cooldown by ${pet.data.effectValue}s!`, owner === 'your' ? 'your-dmg' : 'enemy-dmg', owner);
+                } else if (pet.data.effectDuration > 0) {
+                    targetDeck.modifiers.debuffs = targetDeck.modifiers.debuffs.filter(db => db.type !== 'extend_cd');
+                    targetDeck.modifiers.debuffs.push({ type: 'extend_cd', value: pet.data.effectValue, remaining: pet.data.effectDuration, duration: pet.data.effectDuration, sourceName: pet.data.name, sourceImg: pet.data.img });
+                    addLog(`${pet.data.name} chills the target — its next ability recharges ${pet.data.effectValue}s slower!`, owner === 'your' ? 'your-dmg' : 'enemy-dmg', owner);
+                }
+                return;
+            }
+
+
+            // Face Slap (debuff_damage_dealt - Silkworm Purple, Pet Present Goblin)
+            // Wiki: "enraging THEM to inflict X% more damage" — debuff on enemy, not self-buff
+            if (pet.data.effect === 'debuff_damage_dealt') {
+                applyModifiers(targetDeck, pet.data, false, pet, owner === 'your' ? 'enemy' : 'your');
+                return;
+            }
+
+
+            // Self buffs — Ginger Blast / Sugar Rush also affects partner deck
+            if (SELF_BUFFS.includes(pet.data.effect)) {
+                applyModifiers(sourceDeck, pet.data, true, pet, owner);
+                if (pet.data.effect === 'fast_recharge') {
+                    const sourcePlayer = owner === 'your' ? battle.your : battle.enemy;
+                    const partnerDeck = inactiveDeck(sourcePlayer);
+                    if (partnerDeck && partnerDeck.hp > 0) applyModifiers(partnerDeck, pet.data, true, pet, owner);
+                } else if (pet.data.effect === 'buff_damage_and_speed') {
+                    const sourcePlayer = owner === 'your' ? battle.your : battle.enemy;
+                    const partnerDeck = inactiveDeck(sourcePlayer);
+                    if (partnerDeck && partnerDeck.hp > 0) {
+                        partnerDeck.modifiers.buffs = partnerDeck.modifiers.buffs.filter(b => b.type !== 'fast_cd');
+                        partnerDeck.modifiers.buffs.push({ type: 'fast_cd', value: pet.data.effectValue, remaining: pet.data.effectDuration, duration: pet.data.effectDuration, sourceName: pet.data.name, sourceImg: pet.data.img });
+                    }
+                }
+                return;
+            }
+
+            // Random Damage (Lucky Pendant) — damage is a random value between the base damage and effectValue
+            if (pet.data.effect === 'random_damage') {
+                const targetPlayer = owner === 'your' ? battle.enemy : battle.your;
+                const min = Math.min(pet.data.damage || 1, pet.data.effectValue || (pet.data.damage || 1));
+                const max = Math.max(pet.data.damage || 1, pet.data.effectValue || (pet.data.damage || 1));
+                const amt = Math.floor(Math.random() * (max - min + 1)) + min;
+                const dmg = dealDamage(targetPlayer, amt, pet);
+                addLog(`${pet.data.name} strikes with a random burst for ${dmg} damage!`, owner === 'your' ? 'your-dmg' : 'enemy-dmg', owner);
+                return;
+            }
+
+            // Bonus on Debuff (Unearthly Synthoid) — base damage already landed generically; if the target
+            // is carrying any negative effect, vaporize one of them for extra damage.
+            if (pet.data.effect === 'bonus_on_debuff') {
+                let removedLabel = null;
+                if (targetDeck.modifiers.debuffs.length > 0) {
+                    removedLabel = targetDeck.modifiers.debuffs.shift().type;
+                    recomputeModifiers(targetDeck);
+                } else {
+                    const negStatus = targetDeck.statusEffects.find(e => ['stun', 'freeze', 'trauma', 'dot', 'dance', 'sleep'].includes(e.type));
+                    if (negStatus) { targetDeck.statusEffects = targetDeck.statusEffects.filter(e => e !== negStatus); removedLabel = negStatus.type; }
+                }
+                if (removedLabel) {
+                    const targetPlayer = owner === 'your' ? battle.enemy : battle.your;
+                    const dmg = dealDamage(targetPlayer, pet.data.effectValue, pet);
+                    addLog(`${pet.data.name} vaporizes ${removedLabel} for ${dmg} bonus damage!`, owner === 'your' ? 'your-dmg' : 'enemy-dmg', owner);
+                }
+                return;
+            }
+
+            // Desperate Bite (Pet Fox) — deals more damage the lower the user's own HP is.
+            // The wiki gives no exact scaling numbers (effectValue is 0 in the database), so this ramps
+            // damage up to +100% at 0 HP as a reasonable default — tune the multiplier below if needed.
+            if (pet.data.effect === 'desperate') {
+                const sourcePlayer = owner === 'your' ? battle.your : battle.enemy;
+                const missingFrac = Math.max(0, 1 - (sourceDeck.hp / getMaxHp(sourcePlayer)));
+                const amt = Math.floor(pet.data.damage * (1 + missingFrac));
+                const targetPlayer = owner === 'your' ? battle.enemy : battle.your;
+                const dmg = dealDamage(targetPlayer, amt, pet);
+                addLog(`${pet.data.name} bites desperately for ${dmg} damage!`, owner === 'your' ? 'your-dmg' : 'enemy-dmg', owner);
+                return;
+            }
+
+            // Random Element (Rainbow Kite) — rolls a random element for this hit only, so the elemental
+            // multiplier and Purple Haze fire-check use the rolled element instead of the pet's real one.
+            if (pet.data.effect === 'random_element') {
+                const elements = ['Fire', 'Earth', 'Air', 'Water'];
+                const rolled = elements[Math.floor(Math.random() * elements.length)];
+                const originalElement = pet.data.element;
+                let dmg = 0;
+                try {
+                    pet.data.element = rolled;
+                    const targetPlayer = owner === 'your' ? battle.enemy : battle.your;
+                    dmg = dealDamage(targetPlayer, pet.data.damage, pet);
+                } finally {
+                    pet.data.element = originalElement;
+                }
+                addLog(`${pet.data.name} blasts a ${rolled} rainbow beam for ${dmg} damage!`, owner === 'your' ? 'your-dmg' : 'enemy-dmg', owner);
+                return;
+            }
+
+            // Life Drain (Dryad, Skeletal Dragon Claw) — heals for exactly the damage actually dealt
+            if (pet.data.effect === 'life_drain') {
+                const targetPlayer = owner === 'your' ? battle.enemy : battle.your;
+                const sourcePlayer = owner === 'your' ? battle.your : battle.enemy;
+                const dmg = dealDamage(targetPlayer, pet.data.damage, pet);
+                addLog(`${pet.data.name} deals ${dmg} damage!`, owner === 'your' ? 'your-dmg' : 'enemy-dmg', owner);
+                if (dmg > 0 && !sourceDeck.statusEffects.some(e => e.type === 'trauma' && e.remaining > 0)) {
+                    sourceDeck.hp = Math.min(getMaxHp(sourcePlayer), sourceDeck.hp + dmg);
+                    addLog(`${pet.data.name} drains life, healing ${dmg} HP!`, 'heal', owner);
+                }
+                return;
+            }
+
+            // Self Damage (Psyblade) — deals damage to the enemy (handled generically) plus recoil damage to self
+            if (pet.data.effect === 'self_damage') {
+                const recoil = pet.data.effectValue || 0;
+                sourceDeck.hp = Math.max(0, sourceDeck.hp - recoil);
+                addLog(`${pet.data.name} takes ${recoil} recoil damage!`, 'enemy-dmg', owner);
+                return;
+            }
+
+            // Self Stun (Rhino Horn) — the user stuns itself after charging (can still swap out)
+            if (pet.data.effect === 'self_stun') {
+                sourceDeck.statusEffects.push({ type: 'stun', duration: pet.data.effectDuration, remaining: pet.data.effectDuration, sourceName: pet.data.name, sourceImg: pet.data.img });
+                addLog(`${pet.data.name} is stunned from the recoil!`, 'enemy-dmg', owner);
+                return;
+            }
+
+            // Delayed Damage (Zombie Hound) — immediate hit is handled generically; schedule the burst
+            if (pet.data.effect === 'delayed_damage') {
+                battle.delayedHits = battle.delayedHits || [];
+                battle.delayedHits.push({ ownerKey: owner, targetKey: owner === 'your' ? 'enemy' : 'your', amount: pet.data.effectValue, ticksLeft: pet.data.effectDuration, sourceName: pet.data.name, sourceImg: pet.data.img });
+                addLog(`${pet.data.name} plants spores that will burst soon!`, owner === 'your' ? 'your-dmg' : 'enemy-dmg', owner);
+                return;
+            }
+
+            // Counter / Thorns (Spikey Shield, Claws Out, Needles, Bouncy Barrier) — reflects damage back when hit
+            if (pet.data.effect === 'counter' || pet.data.effect === 'thorns') {
+                sourceDeck.modifiers.buffs = sourceDeck.modifiers.buffs.filter(b => b.type !== 'counter_reflect');
+                sourceDeck.modifiers.buffs.push({ type: 'counter_reflect', value: pet.data.damage, remaining: pet.data.effectDuration, duration: pet.data.effectDuration, sourceName: pet.data.name, sourceImg: pet.data.img });
+                addLog(`${pet.data.name} braces to reflect ${pet.data.damage} damage for ${pet.data.effectDuration}s!`, 'heal', owner);
+                return;
+            }
+
+            // Doom (Death's Scarf) — the target deck dies when the timer runs out, unless they swap away first
+            if (pet.data.effect === 'doom') {
+                targetDeck.statusEffects = targetDeck.statusEffects.filter(e => e.type !== 'doom');
+                targetDeck.statusEffects.push({ type: 'doom', duration: pet.data.effectDuration, remaining: pet.data.effectDuration, sourceName: pet.data.name, sourceImg: pet.data.img });
+                addLog(`${pet.data.name} places a doom curse — ${pet.data.effectDuration}s until it claims the deck (unless they swap away)!`, owner === 'your' ? 'your-dmg' : 'enemy-dmg', owner);
+                return;
+            }
+
+            // Banish (ChronoReaper) — forces the enemy to swap and locks them out of swapping back
+            if (pet.data.effect === 'banish') {
+                const targetPlayer = owner === 'your' ? battle.enemy : battle.your;
+                const otherNum = targetPlayer.activeDeck === 1 ? 2 : 1;
+                const otherDeck = targetPlayer.decks[otherNum];
+                if (otherDeck.hp > 0) {
+                    targetDeck.statusEffects = targetDeck.statusEffects.filter(e => e.type !== 'doom');
+                    targetPlayer.activeDeck = otherNum; targetPlayer.activePet = 0;
+                    const newDeck = otherDeck;
+                    newDeck.modifiers.debuffs = newDeck.modifiers.debuffs.filter(db => db.type !== 'no_swap');
+                    newDeck.modifiers.debuffs.push({ type: 'no_swap', value: 0, remaining: pet.data.effectDuration, duration: pet.data.effectDuration, sourceName: pet.data.name, sourceImg: pet.data.img });
+                    newDeck.modifiers.canSwap = false;
+                    addLog(`${pet.data.name} banishes the enemy, forcing them to swap!`, owner === 'your' ? 'your-dmg' : 'enemy-dmg', owner);
+                } else {
+                    addLog(`${pet.data.name} tries to banish, but the enemy has nowhere to go!`, owner === 'your' ? 'your-dmg' : 'enemy-dmg', owner);
+                }
+                return;
+            }
+
+            // Absorb / Hit By Inspiration — nullifies the next hits and heals for the damage absorbed.
+            // Same move class: reapplying before it expires extends the duration instead of refreshing it.
+            if (pet.data.effect === 'absorb') {
+                const existing = sourceDeck.statusEffects.find(e => e.type === 'absorb');
+                if (existing) { existing.remaining += pet.data.effectDuration; existing.duration = existing.remaining; existing.sourceName = pet.data.name; existing.sourceImg = pet.data.img; }
+                else sourceDeck.statusEffects.push({ type: 'absorb', duration: pet.data.effectDuration, remaining: pet.data.effectDuration, sourceName: pet.data.name, sourceImg: pet.data.img });
+                addLog(`${pet.data.name} raises an Absorb shield for ${pet.data.effectDuration}s!`, 'heal', owner);
+                return;
+            }
+
+            // Ethereal / Mist Form — a temporary percent-chance to dodge, stacked on top of guaranteed dodge/passive dodge
+            if (pet.data.effect === 'ethereal') {
+                sourceDeck.statusEffects = sourceDeck.statusEffects.filter(e => e.type !== 'ethereal');
+                sourceDeck.statusEffects.push({ type: 'ethereal', percent: pet.data.effectValue, duration: pet.data.effectDuration, remaining: pet.data.effectDuration, sourceName: pet.data.name, sourceImg: pet.data.img });
+                addLog(`${pet.data.name} turns ethereal: -${pet.data.effectValue}% damage taken for ${pet.data.effectDuration}s!`, 'heal', owner);
+                return;
+            }
+
+            // Hit Both (Fiesta Dragon, Death Ray) — the primary hit already landed on the enemy's active deck
+            // via the generic damage path; this also strikes their backup deck.
+            if (pet.data.effect === 'hit_both') {
+                const targetPlayer = owner === 'your' ? battle.enemy : battle.your;
+                const otherNum = targetPlayer.activeDeck === 1 ? 2 : 1;
+                const otherDeck = targetPlayer.decks[otherNum];
+                if (otherDeck.hp > 0) {
+                    const originalActive = targetPlayer.activeDeck;
+                    targetPlayer.activeDeck = otherNum;
+                    const dmg2 = dealDamage(targetPlayer, pet.data.damage, pet);
+                    targetPlayer.activeDeck = originalActive;
+                    addLog(`${pet.data.name} also hits the backup deck for ${dmg2} damage!`, owner === 'your' ? 'your-dmg' : 'enemy-dmg', owner);
+                }
+                return;
+            }
+
+            // Mind Swap (Thinking Cap) — per the wiki: "Take all the positive effects on your opponent, and
+            // give all your negative effects to them." Steals the target's buffs, dumps your debuffs on them.
+            if (pet.data.effect === 'mind_swap') {
+                const stolenBuffs = targetDeck.modifiers.buffs.slice();
+                const givenDebuffs = sourceDeck.modifiers.debuffs.slice();
+                targetDeck.modifiers.buffs = [];
+                sourceDeck.modifiers.buffs = sourceDeck.modifiers.buffs.concat(stolenBuffs);
+                sourceDeck.modifiers.debuffs = [];
+                targetDeck.modifiers.debuffs = targetDeck.modifiers.debuffs.concat(givenDebuffs);
+                recomputeModifiers(sourceDeck);
+                recomputeModifiers(targetDeck);
+                const buffMsg = stolenBuffs.length ? `steals ${stolenBuffs.length} buff${stolenBuffs.length > 1 ? 's' : ''}` : 'finds no buffs to steal';
+                const debuffMsg = givenDebuffs.length ? `dumps ${givenDebuffs.length} debuff${givenDebuffs.length > 1 ? 's' : ''} on them` : 'has no debuffs to pass on';
+                addLog(`${pet.data.name} swaps minds — ${buffMsg} and ${debuffMsg}!`, owner === 'your' ? 'your-dmg' : 'enemy-dmg', owner);
+                return;
+            }
+
+            // Force Partner Forward (Growmoji's Little Partner) — instantly pulls the user's own backup deck to the front
+            // Force Partner Forward (Growmoji's Little Partner) — per wiki: "bringing THEIR partner forward"
+            // (their = the foe's). This forces the ENEMY to swap to their backup deck, same family as
+            // Trample/force_swap, not a self-swap.
+            if (pet.data.effect === 'force_partner_forward') {
+                const targetPlayer = owner === 'your' ? battle.enemy : battle.your;
+                const otherNum = targetPlayer.activeDeck === 1 ? 2 : 1;
+                const otherDeck = targetPlayer.decks[otherNum];
+                if (otherDeck.hp > 0 && targetDeck.modifiers.canSwap && !targetDeck.statusEffects.some(e => e.type === 'freeze' && e.remaining > 0)) {
+                    targetDeck.statusEffects = targetDeck.statusEffects.filter(e => e.type !== 'doom');
+                    targetPlayer.activeDeck = otherNum; targetPlayer.activePet = 0;
+                    addLog(`${pet.data.name} scratches the foe and brings their partner forward!`, owner === 'your' ? 'your-dmg' : 'enemy-dmg', owner);
+                } else {
+                    addLog(`${pet.data.name} tries to bring the foe's partner forward, but they can't be swapped!`, owner === 'your' ? 'your-dmg' : 'enemy-dmg', owner);
+                }
+                return;
+            }
+
+            // Radiation Beam / Pollen Barrage — consumes one of the user's own positive buffs; dealDamage already
+            // ignored that buff for this hit (see isConsumeBuff), this just removes it as the cost.
+            if (pet.data.effect === 'consume_buff') {
+                if (sourceDeck.modifiers.buffs.length > 0) {
+                    const consumed = sourceDeck.modifiers.buffs.shift();
+                    recomputeModifiers(sourceDeck);
+                    addLog(`${pet.data.name} consumes ${consumed.sourceName}'s buff before striking!`, 'heal', owner);
+                }
+                return;
+            }
+
+            // Force Swap (Trample - Calf Leash) — base hit already landed generically; forces the enemy to
+            // swap to their other deck (does not lock them out of swapping back, unlike Banish).
+            if (pet.data.effect === 'force_swap') {
+                const targetPlayer = owner === 'your' ? battle.enemy : battle.your;
+                const otherNum = targetPlayer.activeDeck === 1 ? 2 : 1;
+                const otherDeck = targetPlayer.decks[otherNum];
+                const canForce = otherDeck.hp > 0 && targetDeck.modifiers.canSwap && !targetDeck.statusEffects.some(e => e.type === 'freeze' && e.remaining > 0);
+                if (canForce) {
+                    targetDeck.statusEffects = targetDeck.statusEffects.filter(e => e.type !== 'doom');
+                    targetPlayer.activeDeck = otherNum; targetPlayer.activePet = 0;
+                    addLog(`${pet.data.name} tramples the enemy, forcing them to swap!`, owner === 'your' ? 'your-dmg' : 'enemy-dmg', owner);
+                } else {
+                    addLog(`${pet.data.name} tries to trample, but the enemy has nowhere to swap!`, owner === 'your' ? 'your-dmg' : 'enemy-dmg', owner);
+                }
+                return;
+            }
+
+            // Chain on Kill (Death Ray - Leashed Silkworm Red) — base hit already landed generically; if it
+            // finished off the target deck, the blast chains into their partner deck for the same damage.
+            if (pet.data.effect === 'chain_on_kill') {
+                if (targetDeck.hp <= 0) {
+                    const targetPlayer = owner === 'your' ? battle.enemy : battle.your;
+                    const otherNum = targetPlayer.activeDeck === 1 ? 2 : 1;
+                    const otherDeck = targetPlayer.decks[otherNum];
+                    if (otherDeck.hp > 0) {
+                        const originalActive = targetPlayer.activeDeck;
+                        targetPlayer.activeDeck = otherNum;
+                        const dmg2 = dealDamage(targetPlayer, pet.data.damage, pet);
+                        targetPlayer.activeDeck = originalActive;
+                        addLog(`${pet.data.name}'s Death Ray chains through the fallen deck, hitting the partner for ${dmg2} damage!`, owner === 'your' ? 'your-dmg' : 'enemy-dmg', owner);
+                    }
+                }
+                return;
+            }
+
+            // Heal Back (Phantom Pain - Haunted Pants) — base hit already landed generically; that same amount
+            // of damage heals back onto the target over effectDuration seconds. Scheduled via battle.healBacks
+            // and ticked in gameTick; Trauma blocks the returning heal just like any other heal.
+            if (pet.data.effect === 'heal_back') {
+                battle.healBacks = battle.healBacks || [];
+                battle.healBacks.push({ targetKey: owner === 'your' ? 'enemy' : 'your', total: pet.data.damage, healed: 0, ticksLeft: pet.data.effectDuration || 10, sourceName: pet.data.name, sourceImg: pet.data.img });
+                addLog(`${pet.data.name}'s Phantom Pain lingers — the wound will heal back over ${pet.data.effectDuration || 10}s!`, owner === 'your' ? 'your-dmg' : 'enemy-dmg', owner);
+                return;
+            }
+
+            // Dino Elemental Bonus / "Critical" line (Apatodon/Apatoceratops/Apatosaurus/Apatos Rex) — deals
+            // bonus damage when this pet's element beats the defender's element (e.g. Air vs Water), per wiki.
+            if (pet.data.effect === 'elemental_bonus') {
+                const targetPlayer = owner === 'your' ? battle.enemy : battle.your;
+                const defEl = getDeckElement(getDeck(targetPlayer), targetPlayer.activePet);
+                const isBonus = ELEMENT_BEATS[pet.data.element] === defEl;
+                const amt = isBonus ? Math.floor(pet.data.damage * (1 + pet.data.effectValue / 100)) : pet.data.damage;
+                const dmg = dealDamage(targetPlayer, amt, pet);
+                addLog(isBonus ? `${pet.data.name} lands a critical hit for ${dmg} damage!` : `${pet.data.name} deals ${dmg} damage!`, owner === 'your' ? 'your-dmg' : 'enemy-dmg', owner);
+                return;
+            }
+
+            // Toasties (summon - Phlogiston) — always deals its flat listed damage per toastie, completely
+            // ignoring elemental differences and any damage-modifying buffs/debuffs (per wiki trivia). The DoT
+            // tick in gameTick already applies raw, unmodified damage, so an initial flat hit plus a DoT of more
+            // toasties reproduces that "ignores everything" behavior naturally, without touching dealDamage.
+            if (pet.data.effect === 'summon') {
+                if (tryResist(targetDeck, owner === 'your' ? 'enemy' : 'your')) return;
+                targetDeck.hp = Math.max(0, targetDeck.hp - pet.data.damage);
+                addLog(`${pet.data.name} summons a Toastie for ${pet.data.damage} unmodified damage!`, owner === 'your' ? 'your-dmg' : 'enemy-dmg', owner);
+                if (pet.data.dotDuration > 0) {
+                    targetDeck.statusEffects.push({ type: 'dot', damage: pet.data.dotDamage, remaining: pet.data.dotDuration, duration: pet.data.dotDuration, sourceName: pet.data.name, sourceImg: pet.data.img });
+                    addLog(`The Toastie keeps burning: ${pet.data.dotDamage}/s for ${pet.data.dotDuration}s!`, owner === 'your' ? 'your-dmg' : 'enemy-dmg', owner);
+                }
+                return;
+            }
+
+            // That's Cold (throw_teammate - Magical Carrot) — instantly KOs the CASTER's own partner deck. If
+            // the cast messed up, useAbility already aborted before reaching this handler, so the partner is
+            // naturally spared — matching the wiki's "not instantly KO'd" rule for messed-up casts. The
+            // dodge/block exception to THAT rule is handled separately inside useAbility's mess-up branch below.
+            // That's Cold (throw_teammate - Magical Carrot) — per wiki: "throw their frozen body at the other
+            // team, hitting each for half your teammate's current health." Instantly KOs the caster's own
+            // partner deck, then deals half that partner's (pre-KO) HP to BOTH of the enemy's decks.
+            if (pet.data.effect === 'throw_teammate') {
+                const sourcePlayer = owner === 'your' ? battle.your : battle.enemy;
+                const otherNum = sourcePlayer.activeDeck === 1 ? 2 : 1;
+                const partnerDeck = sourcePlayer.decks[otherNum];
+                if (partnerDeck.hp > 0) {
+                    const halfHp = Math.floor(partnerDeck.hp / 2);
+                    partnerDeck.hp = 0;
+                    const targetPlayer = owner === 'your' ? battle.enemy : battle.your;
+                    const dmg1 = dealDamage(targetPlayer, halfHp, pet);
+                    addLog(`${pet.data.name} throws its frozen partner, knocking them out and hitting the enemy for ${dmg1} damage!`, owner === 'your' ? 'your-dmg' : 'enemy-dmg', owner);
+                    const enemyOtherNum = targetPlayer.activeDeck === 1 ? 2 : 1;
+                    const enemyOtherDeck = targetPlayer.decks[enemyOtherNum];
+                    if (enemyOtherDeck.hp > 0) {
+                        const originalActive = targetPlayer.activeDeck;
+                        targetPlayer.activeDeck = enemyOtherNum;
+                        const dmg2 = dealDamage(targetPlayer, halfHp, pet);
+                        targetPlayer.activeDeck = originalActive;
+                        addLog(`${pet.data.name}'s frozen throw also hits the enemy's backup deck for ${dmg2} damage!`, owner === 'your' ? 'your-dmg' : 'enemy-dmg', owner);
+                    }
+                }
+                return;
+            }
+
+            // Self Sacrifice / Trick Escape (dodge_swap) — grants the caster a self-dodge and forces a swap to
+            // their other deck. Note: wiki trivia says these can ALSO be triggered reactively whenever the pet
+            // uses ANY self-targeted move (Stoneform, Acrobatics, Hop, etc.) — that would mean hooking every
+            // self-targeted ability in the game, which is out of scope here; this only covers the pet's own
+            // direct use of Self Sacrifice/Trick Escape.
+            if (pet.data.effect === 'dodge_swap') {
+                const sourcePlayer = owner === 'your' ? battle.your : battle.enemy;
+                const otherNum = sourcePlayer.activeDeck === 1 ? 2 : 1;
+                const otherDeck = sourcePlayer.decks[otherNum];
+                if (otherDeck.hp > 0 && sourceDeck.modifiers.canSwap && !sourceDeck.statusEffects.some(e => e.type === 'freeze' && e.remaining > 0)) {
+                    sourceDeck.statusEffects = sourceDeck.statusEffects.filter(e => e.type !== 'doom');
+                    sourcePlayer.activeDeck = otherNum; sourcePlayer.activePet = 0;
+                    // The smoke left behind helps the incoming teammate dodge everything for the duration —
+                    // not the deck being left, which is now inactive and can't be attacked anyway.
+                    otherDeck.statusEffects.push({ type: 'dodge', duration: pet.data.effectDuration, remaining: pet.data.effectDuration, sourceName: pet.data.name, sourceImg: pet.data.img });
+                    addLog(`${pet.data.name} dodges and swaps to safety, leaving cover smoke!`, owner === 'your' ? 'your-dmg' : 'enemy-dmg', owner);
+                } else {
+                    addLog(`${pet.data.name} dodges, but has nowhere to swap!`, owner === 'your' ? 'your-dmg' : 'enemy-dmg', owner);
+                }
+                return;
+            }
+
+            // Static Charge (stack_burst - Betty Bluetooth Doll) — launches all accumulated charges at once,
+            // dealing pet.data.damage per charge, then resets to 0.
+            if (pet.data.effect === 'stack_burst') {
+                const charges = pet.charge || 0;
+                pet.charge = 0;
+                if (charges > 0) {
+                    const dmg = dealDamage(owner === 'your' ? battle.enemy : battle.your, pet.data.damage * charges, pet);
+                    addLog(`${pet.data.name} unleashes ${charges} static charge${charges > 1 ? 's' : ''} for ${dmg} damage!`, owner === 'your' ? 'your-dmg' : 'enemy-dmg', owner);
+                } else {
+                    addLog(`${pet.data.name} has no static charge built up yet!`, owner === 'your' ? 'your-dmg' : 'enemy-dmg', owner);
+                }
+                return;
+            }
+
+            // Punch, Build, Grow (stacking_build - Mini Growtopian) — cycles through 3 sub-moves on successive
+            // uses. Grow adds a permanent (per-battle) stack, up to 5, boosting Punch's damage and Build's
+            // block duration.
+            if (pet.data.effect === 'stacking_build') {
+                pet.growStacks = pet.growStacks || 0;
+                pet.buildPhase = pet.buildPhase || 0;
+                const phase = pet.buildPhase % 3;
+                if (phase === 0) {
+                    const dmg = dealDamage(owner === 'your' ? battle.enemy : battle.your, pet.data.damage + pet.growStacks * pet.data.effectValue, pet);
+                    addLog(`${pet.data.name} punches for ${dmg} damage!`, owner === 'your' ? 'your-dmg' : 'enemy-dmg', owner);
+                } else if (phase === 1) {
+                    const dur = 1 + pet.growStacks;
+                    sourceDeck.statusEffects.push({ type: 'block', duration: dur, remaining: dur, sourceName: pet.data.name, sourceImg: pet.data.img });
+                    addLog(`${pet.data.name} builds a wall, blocking attacks for ${dur}s!`, owner === 'your' ? 'your-dmg' : 'enemy-dmg', owner);
+                } else {
+                    pet.growStacks = Math.min(5, pet.growStacks + 1);
+                    addLog(`${pet.data.name} grows! (${pet.growStacks}/5 stacks)`, owner === 'your' ? 'your-dmg' : 'enemy-dmg', owner);
+                }
+                pet.buildPhase++;
+                return;
+            }
+
+            // Spirit Swap (force_swap_transfer - Spiritfire Mask) — base 10 Fire damage already landed
+            // generically; forces the enemy to swap AND transfers all of their current status effects and
+            // buffs/debuffs onto the deck that swaps in.
+            if (pet.data.effect === 'force_swap_transfer') {
+                const targetPlayer = owner === 'your' ? battle.enemy : battle.your;
+                const otherNum = targetPlayer.activeDeck === 1 ? 2 : 1;
+                const otherDeck = targetPlayer.decks[otherNum];
+                if (otherDeck.hp > 0 && targetDeck.modifiers.canSwap && !targetDeck.statusEffects.some(e => e.type === 'freeze' && e.remaining > 0)) {
+                    otherDeck.statusEffects = otherDeck.statusEffects.concat(targetDeck.statusEffects);
+                    otherDeck.modifiers.buffs = otherDeck.modifiers.buffs.concat(targetDeck.modifiers.buffs);
+                    otherDeck.modifiers.debuffs = otherDeck.modifiers.debuffs.concat(targetDeck.modifiers.debuffs);
+                    targetDeck.statusEffects = []; targetDeck.modifiers.buffs = []; targetDeck.modifiers.debuffs = [];
+                    recomputeModifiers(otherDeck); recomputeModifiers(targetDeck);
+                    targetPlayer.activeDeck = otherNum; targetPlayer.activePet = 0;
+                    addLog(`${pet.data.name} forces a swap and drags every status effect along with it!`, owner === 'your' ? 'your-dmg' : 'enemy-dmg', owner);
+                } else {
+                    addLog(`${pet.data.name} tries to force a spirit swap, but the enemy can't be swapped!`, owner === 'your' ? 'your-dmg' : 'enemy-dmg', owner);
+                }
+                return;
+            }
+
+            // Possession (random_skill_wrong_target - Spiritual Resonator) — picks a random enemy pet with an
+            // attack and turns it against the enemy's own deck. Exact mechanic isn't confirmed from the wiki;
+            // this is a reasonable placeholder, flagged for revision if the real behavior turns out different.
+            if (pet.data.effect === 'random_skill_wrong_target') {
+                const targetPlayer = owner === 'your' ? battle.enemy : battle.your;
+                const possessDeck = getDeck(targetPlayer);
+                const candidates = possessDeck.pets.filter(p => p && p.data && p.data.damage > 0);
+                if (candidates.length > 0) {
+                    const picked = candidates[Math.floor(Math.random() * candidates.length)];
+                    const dmg = dealDamage(targetPlayer, picked.data.damage, picked);
+                    addLog(`${pet.data.name} possesses the enemy, forcing ${picked.data.name} to hit their own team for ${dmg} damage!`, owner === 'your' ? 'your-dmg' : 'enemy-dmg', owner);
+                } else {
+                    addLog(`${pet.data.name} tries to possess the enemy, but finds nothing to turn against them!`, owner === 'your' ? 'your-dmg' : 'enemy-dmg', owner);
+                }
+                return;
+            }
+
+            // Trap Swap (Lockjaw!, Surprise! - Pinata Pal) — "isn't visible to your enemy" per wiki, so no UI
+            // indicator; a hidden trap that punishes the target's NEXT voluntary swap within the window.
+            // Lockjaw stores its bonus damage in effectValue (single target); Pinata Pal's damage is already
+            // its base 'damage' field and hits both of the enemy's decks. Neither pet gives an explicit trigger
+            // window in the wiki text for Lockjaw, so it defaults to 4s (matching Pinata Pal) — an assumption.
+            if (pet.data.effect === 'trap_swap') {
+                const window = pet.data.effectDuration > 0 ? pet.data.effectDuration : 4;
+                const bonusAmt = pet.data.effectValue > 0 ? pet.data.effectValue : pet.data.damage;
+                battle.swapTraps = battle.swapTraps || [];
+                battle.swapTraps.push({ targetKey: owner === 'your' ? 'enemy' : 'your', ownerKey: owner, amount: bonusAmt, hitBoth: pet.data.name === 'Pinata Pal', ticksLeft: window, sourceName: pet.data.name, sourceImg: pet.data.img });
+                addLog(`${pet.data.name} sets a hidden trap!`, owner === 'your' ? 'your-dmg' : 'enemy-dmg', owner);
+                return;
+            }
+
+            // mess_up_undodgeable (Eldritch Spawn, Royal Eldritch Spawn, Familiar Leash)
+            // Same as mess_up but the damage portion can't be dodged (see dealDamage ignoresDodge list)
+            if (pet.data.effect === 'mess_up_undodgeable') {
+                applyModifiers(targetDeck, { effect: 'mess_up', effectValue: pet.data.effectValue, effectDuration: pet.data.effectDuration }, false, pet, owner === 'your' ? 'enemy' : 'your');
+                return;
+            }
+
+            // Generic debuff (everything else)
+            applyModifiers(targetDeck, pet.data, false, pet, owner === 'your' ? 'enemy' : 'your');
+        }
+
+        function aiAct() {
+            const player = battle.enemy;
+            const deck = getDeck(player);
+            const pet = getPet(player);
+            const isDisabled = deck.statusEffects.some(e => ['stun', 'freeze', 'sleep', 'dance'].includes(e.type) && e.remaining > 0);
+            if (pet && pet.cd <= 0 && !pet.data.is_passive && !isDisabled && deck.modifiers.canAct) {
+                if (useAbility(player)) {
+                    const enemyPet = getPet(player);
+                    playSound(enemyPet.data.powerSound);
+                    if (enemyPet.data.damage > 0 && !SPECIAL_DAMAGE_EFFECTS.includes(enemyPet.data.effect)) { const dmg = dealDamage(battle.your, enemyPet.data.damage, enemyPet); addLog(`Enemy ${enemyPet.data.name} deals ${dmg} damage!`, 'enemy-dmg', 'enemy'); }
+                    if (enemyPet.data.heal > 0 && enemyPet.data.effect !== 'life_drain' && enemyPet.data.effect !== 'hot' && !deck.statusEffects.some(e => e.type === 'trauma' && e.remaining > 0)) { deck.hp = Math.min(getMaxHp(player), deck.hp + enemyPet.data.heal); addLog(`Enemy ${enemyPet.data.name} heals ${enemyPet.data.heal} HP!`, 'heal', 'enemy'); }
+                    handlePetEffect(enemyPet, deck, getDeck(battle.your), 'enemy');
+                    return;
+                }
+            }
+            for (let i = 0; i < deck.pets.length; i++) {
+                if (i !== player.activePet && deck.pets[i] && deck.pets[i].cd <= 0 && !deck.pets[i].data.is_passive && !isDisabled) { selectPet(player, i); return; }
+            }
+            if (deck.swapCd <= 0 && inactiveDeck(player).hp > 0 && deck.modifiers.canSwap && !deck.statusEffects.some(e => e.type === 'freeze' && e.remaining > 0)) {
+                const other = inactiveDeck(player);
+                if (other.pets.some(p => p && p.cd <= 0 && !p.data.is_passive)) swapDeck(player);
+            }
+        }
+
+        function tryLivingDeadRevive(player, deadDeckNum) {
+            if (player.livingDeadUsed) return false;
+            const benchedNum = deadDeckNum === 1 ? 2 : 1;
+            const benchedDeck = player.decks[benchedNum];
+            if (benchedDeck.hp <= 0) return false; // Remote's own deck must still be standing to act
+            const remote = benchedDeck.pets.find(p => p && p.data && p.data.effect === 'passive_revive');
+            if (!remote) return false;
+            const deadDeck = player.decks[deadDeckNum];
+            deadDeck.hp = Math.floor(getMaxHp(player, deadDeckNum) * remote.data.effectValue / 100);
+            player.livingDeadUsed = true;
+            addLog(`${remote.data.name} triggers Dawn of the Dead!`, 'heal', player === battle.your ? 'your' : 'enemy');
+            return true;
+        }
+
+        function recomputeModifiers(deck) {
+            deck.modifiers.damageDealt = 0; deck.modifiers.damageTaken = 0; deck.modifiers.doubleDmgChance = 0; deck.modifiers.nextDamage = 0; deck.modifiers.messUpChance = 0; deck.modifiers.canSwap = true; deck.modifiers.canAct = true;
+            let speedMult = 1;
+            deck.modifiers.buffs.forEach(b => {
+                switch (b.type) {
+                    case 'buff_damage': deck.modifiers.damageDealt += b.value; break;
+                    case 'dmg_speed': deck.modifiers.damageDealt += b.value; speedMult *= 2; break;
+                    case 'double_dmg': deck.modifiers.doubleDmgChance = Math.min(100, deck.modifiers.doubleDmgChance + b.value); break;
+                    case 'next_dmg': deck.modifiers.nextDamage += b.value; break;
+                    case 'fast_cd': speedMult *= 2; break;
+                }
+            });
+            deck.modifiers.debuffs.forEach(db => {
+                switch (db.type) {
+                    case 'dmg_taken': deck.modifiers.damageTaken += db.value; break;
+                    case 'debuff_damage': deck.modifiers.damageDealt -= db.value; break;
+                    case 'bad_luck': deck.modifiers.damageDealt -= db.value; deck.modifiers.damageTaken += db.value; break;
+                    case 'slow_cd': speedMult *= 0.5; break;
+                    case 'mess_up': deck.modifiers.messUpChance = Math.min(100, deck.modifiers.messUpChance + db.value); break;
+                    case 'no_swap': deck.modifiers.canSwap = false; break;
+                }
+            });
+            deck.modifiers.rechargeSpeed = speedMult;
+            if (deck.statusEffects.some(e => e.type === 'dance' && e.remaining > 0)) deck.modifiers.canAct = false;
+        }
+
+        function gameTick() {
+            if (!battle || !battle.running) return;
+            battle.tick++;
+
+            if (battle.weather && battle.weather.remaining > 0) {
+                battle.weather.tickCounter++; battle.weather.remaining--;
+                const w = battle.weather;
+                if (w.remaining > 0 || w.tickCounter < Math.floor((w.remaining + w.tickCounter) / w.tickRate) * w.tickRate) {
+                    if (w.tickCounter >= w.tickRate) {
+                        w.tickCounter = 0;
+                        if (w.type === 'firestorm' || w.type === 'toxic_cloud') { ['your', 'enemy'].forEach(key => { battle[key].decks[battle[key].activeDeck].hp = Math.max(0, battle[key].decks[battle[key].activeDeck].hp - w.damage); }); addDetailedLog(`${w.type === 'firestorm' ? 'Firestorm' : 'Toxic Cloud'} ticks — both active decks take ${w.damage} damage.`, 'enemy-dmg', null); }
+                        else if (w.type === 'soothing_mist') { ['your', 'enemy'].forEach(key => { const dk = battle[key].decks[battle[key].activeDeck]; if (!dk.statusEffects.some(e => e.type === 'trauma' && e.remaining > 0)) dk.hp = Math.min(getMaxHp(battle[key], battle[key].activeDeck), dk.hp + w.heal); }); addDetailedLog(`Soothing Mist ticks — both active decks heal ${w.heal} HP (Trauma blocks it per-deck).`, 'heal', null); }
+                        if (w.type === 'count_sheep' && w.remaining > 0) { ['your', 'enemy'].forEach(key => { const dk = battle[key].decks[battle[key].activeDeck]; if (!dk.statusEffects.some(e => e.type === 'sleep' && e.remaining > 0)) { dk.statusEffects.push({ type: 'sleep', duration: w.remaining + 1, remaining: w.remaining + 1, sourceName: w.sourceName, sourceImg: w.sourceImg }); addDetailedLog(`Count Sheep puts ${key === 'your' ? 'your' : "the enemy's"} active deck to sleep.`, key === 'your' ? 'enemy-dmg' : 'your-dmg', null); } }); }
+                    }
+                }
+                if (w.remaining <= 0) battle.weather = { type: null, remaining: 0, damage: 0, tickRate: 1, tickCounter: 0, heal: 0, fireDmgMod: 0, otherDmgMod: 0, sourceName: '', sourceImg: '0.png' };
+            }
+
+            ['your', 'enemy'].forEach(key => {
+                const player = battle[key];
+                [1, 2].forEach(d => {
+                    const deck = player.decks[d];
+                    if (deck.swapCd > 0) deck.swapCd--;
+                    if (deck.duckBackCd > 0) deck.duckBackCd--;
+                    const speed = deck.modifiers.rechargeSpeed || 1;
+                    deck.pets.forEach(p => { if (p && p.cd > 0) p.cd = Math.max(0, p.cd - speed); });
+                    // Recharge-speed effects (Spit Mud/Mud Glob, Ginger Blast/Sugar Rush) also lengthen/shorten CC durations
+                    deck.statusEffects.forEach(e => { e.remaining -= ['stun', 'freeze', 'sleep'].includes(e.type) ? speed : 1; });
+                    deck.statusEffects.filter(e => e.type === 'dot' && e.remaining >= 0).forEach(e => { deck.hp = Math.max(0, deck.hp - e.damage); });
+                    deck.statusEffects.filter(e => e.type === 'hot' && e.remaining >= 0 && !deck.statusEffects.some(t => t.type === 'trauma' && t.remaining > 0)).forEach(e => { deck.hp = Math.min(getMaxHp(player, d), deck.hp + e.heal); });
+                    const casterKey = key === 'your' ? 'enemy' : 'your';
+                    deck.statusEffects.filter(e => e.type === 'doom' && e.remaining <= 0).forEach(e => {
+                        if (deck.hp > 0) { deck.hp = 0; addLog(`${e.sourceName}'s doom curse claims the deck!`, casterKey === 'your' ? 'your-dmg' : 'enemy-dmg', casterKey); }
+                    });
+                    deck.statusEffects = deck.statusEffects.filter(e => e.remaining > 0);
+                    deck.modifiers.buffs.forEach(b => { b.remaining--; }); deck.modifiers.buffs = deck.modifiers.buffs.filter(b => b.remaining > 0);
+                    deck.modifiers.debuffs.forEach(db => { db.remaining--; }); deck.modifiers.debuffs = deck.modifiers.debuffs.filter(db => db.remaining > 0);
+                    recomputeModifiers(deck);
+                });
+            });
+            if (battle.delayedHits && battle.delayedHits.length) {
+                battle.delayedHits.forEach(h => { h.ticksLeft--; });
+                battle.delayedHits.filter(h => h.ticksLeft <= 0).forEach(h => {
+                    const targetPlayer = battle[h.targetKey];
+                    if (getDeck(targetPlayer).hp > 0) {
+                        const dmg = dealDamage(targetPlayer, h.amount, null);
+                        addLog(`${h.sourceName}'s spores burst for ${dmg} damage!`, h.ownerKey === 'your' ? 'your-dmg' : 'enemy-dmg', h.ownerKey);
+                    }
+                });
+                battle.delayedHits = battle.delayedHits.filter(h => h.ticksLeft > 0);
+            }
+            if (battle.healBacks && battle.healBacks.length) {
+                battle.healBacks.forEach(h => {
+                    const targetPlayer = battle[h.targetKey];
+                    const deck = getDeck(targetPlayer);
+                    if (deck.hp > 0 && !deck.statusEffects.some(e => e.type === 'trauma' && e.remaining > 0)) {
+                        const remaining = h.total - h.healed;
+                        const heal = Math.min(Math.round(remaining / h.ticksLeft), remaining);
+                        if (heal > 0) { deck.hp = Math.min(getMaxHp(targetPlayer), deck.hp + heal); h.healed += heal; }
+                    }
+                    h.ticksLeft--;
+                });
+                battle.healBacks = battle.healBacks.filter(h => h.ticksLeft > 0 && h.healed < h.total);
+            }
+            if (battle.swapTraps && battle.swapTraps.length) {
+                battle.swapTraps.forEach(t => { t.ticksLeft--; });
+                battle.swapTraps = battle.swapTraps.filter(t => t.ticksLeft > 0);
+            }
+            applyPassives(battle.your); applyPassives(battle.enemy);
+            if (battle.tick % 2 === 0) aiAct();
+            ['your', 'enemy'].forEach(key => {
+                const player = battle[key];
+                const deadNum = player.activeDeck;
+                if (player.decks[deadNum].hp <= 0) {
+                    if (!tryLivingDeadRevive(player, deadNum)) {
+                        const other = inactiveDeck(player);
+                        if (other.hp > 0) { player.activeDeck = deadNum === 1 ? 2 : 1; player.activePet = 0; }
+                    }
+                }
+            });
+            let yDead = battle.your.decks[1].hp <= 0 && battle.your.decks[2].hp <= 0;
+            let eDead = battle.enemy.decks[1].hp <= 0 && battle.enemy.decks[2].hp <= 0;
+            if (yDead || eDead) { battle.running = false; document.getElementById('battle-log').textContent = yDead ? '🔴 ENEMY WINS!' : '🟢 YOU WIN!'; }
+            updateBattleUI();
+            if (battle.running) setTimeout(gameTick, 1000);
+        }
+
+        function updatePassiveIndicators() {
+            ['your', 'enemy'].forEach(key => {
+                const player = battle[key];
+                const container = document.getElementById(`${key}-passives`); if (!container) return;
+                container.innerHTML = '';
+                const activeDeck = getDeck(player);
+                const inactiveDeck = player.decks[player.activeDeck === 1 ? 2 : 1];
+                activeDeck.pets.forEach(pet => {
+                    if (!pet || !pet.data || !pet.data.is_passive) return;
+                    if (pet.data.effect === 'passive_heal_inactive' || pet.data.effect === 'passive_revive') return;
+                    const icon = document.createElement('div'); icon.className = 'passive-icon';
+                    const duckCd = pet.data.effect === 'passive_resist_negative' ? (activeDeck.duckBackCd || 0) : 0;
+                    const badge = duckCd > 0 ? `<div class="status-timer">${duckCd}s</div>` : '';
+                    icon.innerHTML = `<img src="Sprites/${pet.data.img}" onerror="this.src='Sprites/0.png'">${badge}<div class="passive-tooltip">${pet.data.name}: ${getPassiveDesc(pet.data, activeDeck)}</div>`;
+                    container.appendChild(icon);
+                });
+                inactiveDeck.pets.forEach(pet => {
+                    if (!pet || !pet.data || !pet.data.is_passive) return;
+                    if (pet.data.effect !== 'passive_heal_inactive' && pet.data.effect !== 'passive_revive') return;
+                    const icon = document.createElement('div'); icon.className = 'passive-icon';
+                    const usedBadge = (pet.data.effect === 'passive_revive' && player.livingDeadUsed) ? `<div class="status-timer">USED</div>` : '';
+                    icon.innerHTML = `<img src="Sprites/${pet.data.img}" onerror="this.src='Sprites/0.png'">${usedBadge}<div class="passive-tooltip">${pet.data.name}: ${getPassiveDesc(pet.data, inactiveDeck)}</div>`;
+                    container.appendChild(icon);
+                });
+            });
+        }
+
+        function updateDebuffIndicators() {
+            ['your', 'enemy'].forEach(key => {
+                const player = battle[key];
+                const container = document.getElementById(`${key}-debuffs`); if (!container) return;
+                container.innerHTML = '';
+                const deck = getDeck(player);
+                const typeNames = { stun: 'Stun', freeze: 'Freeze', dot: 'DoT', trauma: 'Trauma', dance: 'Dance', sleep: 'Sleep', dodge: 'Dodge', doom: 'Doom' };
+                deck.statusEffects.forEach(e => {
+                    if (e.remaining <= 0 || !typeNames[e.type]) return;
+                    const icon = document.createElement('div'); icon.className = 'status-icon-debuff';
+                    icon.innerHTML = `<img src="Sprites/${e.sourceImg || '0.png'}" onerror="this.src='Sprites/0.png'" style="width:32px;height:32px;image-rendering:pixelated;"><div class="status-timer">${e.remaining}s</div><div class="status-tooltip">${typeNames[e.type]} from ${e.sourceName}: ${e.type === 'dot' ? e.damage + ' dmg/s' : e.type === 'doom' ? 'KOs the deck when it expires' : ''} (${e.remaining}s left)</div>`;
+                    container.appendChild(icon);
+                });
+                deck.modifiers.debuffs.forEach(db => {
+                    const names = { dmg_taken: 'Dmg Taken', bad_luck: 'Bad Luck', slow_cd: 'Slow CD', mess_up: 'Mess Up', no_swap: 'No Swap', extend_cd: 'Extend CD', debuff_damage: 'Dmg Dealt-' };
+                    if (!names[db.type]) return;
+                    const icon = document.createElement('div'); icon.className = 'status-icon-debuff';
+                    const valLabel = db.type === 'extend_cd' ? `+${db.value}s CD` : `+${db.value}%`;
+                    icon.innerHTML = `<img src="Sprites/${db.sourceImg || '0.png'}" onerror="this.src='Sprites/0.png'" style="width:32px;height:32px;image-rendering:pixelated;"><div class="status-timer">${db.remaining}s</div><div class="status-tooltip">${names[db.type]} from ${db.sourceName}: ${valLabel} (${db.remaining}s left)</div>`;
+                    container.appendChild(icon);
+                });
+            });
+        }
+
+        function updateBuffIndicators() {
+            ['your', 'enemy'].forEach(key => {
+                const player = battle[key];
+                const container = document.getElementById(`${key}-buffs`); if (!container) return;
+                container.innerHTML = '';
+                const deck = getDeck(player);
+                deck.modifiers.buffs.forEach(b => {
+                    const names = { buff_damage: 'Dmg+', dmg_speed: 'Dmg+CD', double_dmg: '2x Dmg', next_dmg: 'Next Dmg', fast_cd: 'Fast CD', counter_reflect: 'Counter' };
+                    if (!names[b.type]) return;
+                    const icon = document.createElement('div'); icon.className = 'status-icon-buff';
+                    const valLabel = b.type === 'counter_reflect' ? `Reflects ${b.value} dmg` : `+${b.value}%`;
+                    icon.innerHTML = `<img src="Sprites/${b.sourceImg || '0.png'}" onerror="this.src='Sprites/0.png'" style="width:32px;height:32px;image-rendering:pixelated;"><div class="status-timer">${b.remaining}s</div><div class="status-tooltip">${names[b.type]} from ${b.sourceName}: ${valLabel} (${b.remaining}s left)</div>`;
+                    container.appendChild(icon);
+                });
+                const statusBuffNames = { absorb: 'Absorb', ethereal: 'Ethereal', hot: 'Regrowth', block: 'Block' };
+                const statusBuffDetail = { absorb: () => 'Nullifies next hit', ethereal: e => `${e.percent}% dodge chance`, hot: e => `Heals ${e.heal} HP/s`, block: () => 'Blocks incoming attacks' };
+                deck.statusEffects.forEach(e => {
+                    if (!statusBuffNames[e.type] || e.remaining <= 0) return;
+                    const icon = document.createElement('div'); icon.className = 'status-icon-buff';
+                    const detail = statusBuffDetail[e.type](e);
+                    icon.innerHTML = `<img src="Sprites/${e.sourceImg || '0.png'}" onerror="this.src='Sprites/0.png'" style="width:32px;height:32px;image-rendering:pixelated;"><div class="status-timer">${e.remaining}s</div><div class="status-tooltip">${statusBuffNames[e.type]} from ${e.sourceName}: ${detail} (${e.remaining}s left)</div>`;
+                    container.appendChild(icon);
+                });
+                deck.pets.forEach(p => {
+                    if (!p || !p.data || p.data.effect !== 'stack_burst' || !p.charge) return;
+                    const icon = document.createElement('div'); icon.className = 'status-icon-buff';
+                    icon.innerHTML = `<img src="Sprites/${p.data.img}" onerror="this.src='Sprites/0.png'" style="width:32px;height:32px;image-rendering:pixelated;"><div class="status-timer">${p.charge}</div><div class="status-tooltip">${p.data.name}: ${p.charge}/${p.data.effectValue} Static Charge stacked</div>`;
+                    container.appendChild(icon);
+                });
+                deck.pets.forEach(p => {
+                    if (!p || !p.data || p.data.effect !== 'stacking_build' || !p.growStacks) return;
+                    const icon = document.createElement('div'); icon.className = 'status-icon-buff';
+                    icon.innerHTML = `<img src="Sprites/${p.data.img}" onerror="this.src='Sprites/0.png'" style="width:32px;height:32px;image-rendering:pixelated;"><div class="status-timer">${p.growStacks}/5</div><div class="status-tooltip">${p.data.name}: ${p.growStacks}/5 Grow stacks (+${p.growStacks * p.data.effectValue} Punch dmg, +${p.growStacks}s Build)</div>`;
+                    container.appendChild(icon);
+                });
+            });
+        }
+
+        function updateWeatherUI() {
+            const container = document.getElementById('weather-display'); if (!container) return;
+            container.innerHTML = '';
+            if (!battle.weather || !battle.weather.type || battle.weather.remaining <= 0) return;
+            const w = battle.weather;
+            const names = { firestorm: 'Firestorm', toxic_cloud: 'Toxic Cloud', soothing_mist: 'Soothing Mist', purple_haze: 'Purple Haze', count_sheep: 'Count Sheep' };
+            const icon = document.createElement('div'); icon.className = 'weather-icon';
+            icon.innerHTML = `<img src="Sprites/${w.sourceImg}" onerror="this.src='Sprites/0.png'"><span style="color:#fff;font-size:12px;">${names[w.type] || w.type}</span><span class="weather-timer">${w.remaining}s</span>`;
+            container.appendChild(icon);
+        }
+
+        function updateBattleUI() {
+            ['your', 'enemy'].forEach(key => {
+                const player = battle[key]; const prefix = key;
+                const deck = getDeck(player); const other = inactiveDeck(player);
+                const area = document.getElementById(`${prefix}-active-area`); if (!area) return;
+                area.querySelector('.deck-label-big').textContent = `${key === 'your' ? 'YOUR' : 'ENEMY'} DECK ${player.activeDeck}`;
+
+                let statusRow = area.querySelector('.status-effects-row');
+                if (!statusRow) { statusRow = document.createElement('div'); statusRow.className = 'status-effects-row'; area.insertBefore(statusRow, area.querySelector('.pet-row')); }
+                statusRow.innerHTML = '';
+                deck.statusEffects.forEach(e => { const tag = document.createElement('span'); tag.className = `status-tag status-${e.type}`; tag.textContent = `${e.type.toUpperCase()} ${e.remaining}s`; statusRow.appendChild(tag); });
+                deck.modifiers.buffs.forEach(b => { const tag = document.createElement('span'); tag.className = 'status-tag'; tag.style.cssText = 'background:#4a4;color:#fff;'; tag.textContent = `⬆ ${b.type.replace('_', ' ')} ${b.remaining}s`; statusRow.appendChild(tag); });
+                deck.modifiers.debuffs.forEach(db => { const tag = document.createElement('span'); tag.className = 'status-tag'; tag.style.cssText = 'background:#844;color:#fff;'; tag.textContent = `⬇ ${db.type.replace('_', ' ')} ${db.remaining}s`; statusRow.appendChild(tag); });
+
+                const pr = area.querySelector('.pet-row'); pr.innerHTML = '';
+                deck.pets.forEach((p, i) => {
+                    if (!p) return;
+                    const isDisabled = deck.statusEffects.some(e => ['stun', 'freeze', 'sleep', 'dance'].includes(e.type) && e.remaining > 0) || !deck.modifiers.canAct;
+                    const ct = p.data.is_passive ? '-' : (p.cd <= 0 ? 'Ready' : p.cd + 's');
+                    const cc = p.data.is_passive ? 'ready' : (p.cd <= 0 && !isDisabled ? 'ready' : 'waiting');
+                    const el = document.createElement('div'); el.className = `team-pet ${p.data.element.toLowerCase()} ${i === player.activePet ? 'selected' : ''}`;
+                    el.innerHTML = `<img src="Sprites/${p.data.img}" onerror="this.src='Sprites/0.png'"><div class="tp-name">${p.data.name}</div><div class="tp-cd ${cc}">${ct}</div>`;
+                    if (key === 'your') {
+                        el.addEventListener('click', () => {
+                            if (p.cd <= 0 && !p.data.is_passive) {
+                                const isStunned = deck.statusEffects.some(e => ['stun', 'freeze', 'sleep', 'dance'].includes(e.type) && e.remaining > 0) || !deck.modifiers.canAct;
+                                if (isStunned) return;
+                                if (i === player.activePet) {
+                                    if (useAbility(battle.your)) {
+                                        const yourPet = getPet(battle.your);
+                                        playSound(yourPet.data.powerSound);
+                                        if (yourPet.data.damage > 0 && !SPECIAL_DAMAGE_EFFECTS.includes(yourPet.data.effect)) { const dmg = dealDamage(battle.enemy, yourPet.data.damage, yourPet); addLog(`${yourPet.data.name} deals ${dmg} damage!`, 'your-dmg', 'your'); }
+                                        if (yourPet.data.heal > 0 && yourPet.data.effect !== 'life_drain' && yourPet.data.effect !== 'hot' && !deck.statusEffects.some(e => e.type === 'trauma' && e.remaining > 0)) { deck.hp = Math.min(getMaxHp(battle.your), deck.hp + yourPet.data.heal); addLog(`${yourPet.data.name} heals ${yourPet.data.heal} HP!`, 'heal', 'your'); }
+                                        handlePetEffect(yourPet, deck, getDeck(battle.enemy), 'your');
+                                        updateBattleUI();
+                                    }
+                                } else { selectPet(battle.your, i); updateBattleUI(); }
+                            }
+                        });
+                    }
+                    pr.appendChild(el);
+                });
+
+                const maxHp = getMaxHp(player);
+                const hpBar = area.querySelector('.hp-bar-inner'); const hpText = area.querySelector('.hp-text');
+                const pct = (deck.hp / maxHp) * 100; hpBar.style.width = pct + '%'; hpBar.className = 'hp-bar-inner' + (pct < 30 ? ' low' : ''); hpText.textContent = deck.hp + '/' + maxHp;
+
+                const sd = document.getElementById(`${prefix}-side-deck`); sd.innerHTML = '';
+                other.pets.forEach(p => { if (!p) return; const ct = p.data.is_passive ? '-' : (p.cd <= 0 ? '0s' : p.cd + 's'); const cc = p.cd <= 0 ? 'ready' : ''; const el = document.createElement('div'); el.className = `side-pet ${p.data.element.toLowerCase()}`; el.innerHTML = `<img src="Sprites/${p.data.img}" onerror="this.src='Sprites/0.png'"><div class="side-cd ${cc}">${ct}</div>`; sd.appendChild(el); });
+                if (key === 'your') {
+                    const otherDeckHp = inactiveDeck(player).hp; const deckDead = otherDeckHp <= 0; const onCd = deck.swapCd > 0;
+                    const isFrozen = deck.statusEffects.some(e => e.type === 'freeze' && e.remaining > 0); const noSwap = !deck.modifiers.canSwap;
+                    const sb = document.createElement('button'); sb.className = 'swap-btn' + (onCd || deckDead || isFrozen || noSwap ? ' on-cd' : '');
+                    sb.textContent = deckDead ? 'DEAD' : (isFrozen ? 'FROZEN' : (noSwap ? 'LOCKED' : (onCd ? `⇄ ${deck.swapCd}s` : 'SWAP')));
+                    sb.addEventListener('click', () => { if (!onCd && !deckDead && !isFrozen && !noSwap && swapDeck(battle.your)) updateBattleUI(); });
+                    sd.appendChild(sb);
+                }
+            });
+            updatePassiveIndicators(); updateDebuffIndicators(); updateBuffIndicators(); updateWeatherUI();
+        }
+
+        // ============================================
+        // START BATTLE
+        // ============================================
+        document.getElementById('start-btn').addEventListener('click', () => {
+            document.getElementById('team-builder').style.display = 'none';
+            const bs = document.getElementById('battle-screen'); bs.style.display = 'block';
+            bs.innerHTML = `
+    <div class="battle-container">
+        <div class="side-deck" id="your-side-deck"></div>
+        <div class="active-deck-area your-area" id="your-active-area">
+            <div class="deck-label-big">YOUR DECK 1</div><div class="player-log" id="your-log"></div>
+            <div class="pet-row" id="your-pet-row"></div>
+            <div class="hp-section"><span class="hp-label">HP</span><div class="hp-bar-outer"><div class="hp-bar-inner" style="width:100%"></div></div><span class="hp-text">150/150</span></div>
+        </div>
+        <div class="vs-divider">⚔️<br>VS</div>
+        <div class="active-deck-area enemy-area" id="enemy-active-area">
+            <div class="deck-label-big">ENEMY DECK 1</div><div class="player-log" id="enemy-log"></div>
+            <div class="pet-row" id="enemy-pet-row"></div>
+            <div class="hp-section"><span class="hp-label">HP</span><div class="hp-bar-outer"><div class="hp-bar-inner" style="width:100%"></div></div><span class="hp-text">150/150</span></div>
+        </div>
+        <div class="side-deck" id="enemy-side-deck"></div>
+    </div>
+    <div id="battle-log"></div>
+    <div class="weather-indicator" id="weather-display"></div>
+    <div class="passive-indicator" id="your-passives" style="left:10px;"></div>
+    <div class="passive-indicator" id="enemy-passives" style="right:10px;"></div>
+    <div class="passive-indicator" id="your-debuffs" style="left:10px; bottom:60px;"></div>
+    <div class="passive-indicator" id="enemy-debuffs" style="right:10px; bottom:60px;"></div>
+    <div class="passive-indicator" id="your-buffs" style="left:10px; bottom:110px;"></div>
+    <div class="passive-indicator" id="enemy-buffs" style="right:10px; bottom:110px;"></div>
+    <div class="detail-log-panel" id="detail-log-panel">
+        <div class="detail-log-header" onclick="toggleDetailLog()">
+            <span>📜 Battle Log</span>
+            <span><span class="dl-count" id="dl-count">0</span><button class="detail-log-toggle" id="dl-toggle-btn">▾</button></span>
+        </div>
+        <div class="detail-log-body" id="detail-log-body"></div>
+    </div>
+    `;
+            initBattle(); updateBattleUI(); setTimeout(gameTick, 1000);
+        });
+
+        // ============================================
+        // CHANGELOG / INFO PANEL
+        // ============================================
+        // Bump this whenever the changelog panel content changes — anyone who already dismissed an
+        // older version will automatically be shown the panel again once on their next visit.
+        const INFO_PANEL_VERSION = '1.0';
+
+        function openInfoModal() {
+            document.getElementById('info-modal-overlay').classList.add('open');
+        }
+        function closeInfoModal() {
+            document.getElementById('info-modal-overlay').classList.remove('open');
+        }
+        function switchInfoTab(name) {
+            document.querySelectorAll('.info-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+            document.querySelectorAll('.info-tab-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === name));
+        }
+
+        document.getElementById('info-version-tag').textContent = `v${INFO_PANEL_VERSION}`;
+        document.getElementById('info-fab-btn').addEventListener('click', openInfoModal);
+        document.getElementById('info-modal-close-btn').addEventListener('click', closeInfoModal);
+        document.getElementById('info-modal-got-it-btn').addEventListener('click', closeInfoModal);
+        document.getElementById('info-modal-overlay').addEventListener('click', (e) => { if (e.target.id === 'info-modal-overlay') closeInfoModal(); });
+        document.querySelectorAll('.info-tab').forEach(t => t.addEventListener('click', () => switchInfoTab(t.dataset.tab)));
+
+        openInfoModal();
+
+    </script>
+</body>
+
+</html>
