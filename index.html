@@ -393,6 +393,10 @@
             cursor: not-allowed;
         }
 
+        .team-tabs {
+            display: none;
+        }
+
         .divider {
             border-right: 3px solid var(--edge);
         }
@@ -1291,12 +1295,248 @@
         .info-modal-foot button:hover {
             background: #4a7a4a;
         }
+        @media (max-width: 820px) {
+
+            html, body {
+                overflow-x: hidden;
+            }
+
+            #team-builder {
+                flex-direction: column;
+                height: 100vh;
+                min-height: 0;
+                overflow: hidden;
+            }
+
+            .team-tabs {
+                display: flex;
+                flex-shrink: 0;
+            }
+
+            .team-tab-btn {
+                flex: 1;
+                padding: 14px 6px;
+                font-family: 'Press Start 2P', monospace;
+                font-size: 10px;
+                letter-spacing: 0.5px;
+                background: var(--panel-deep);
+                color: var(--ink-dim);
+                border: none;
+                border-bottom: 3px solid var(--edge);
+                cursor: pointer;
+            }
+            .team-tab-btn.active {
+                color: var(--volt);
+                border-bottom-color: var(--volt);
+                background: var(--panel);
+            }
+            .panel {
+                width: 100%;
+                height: auto;
+                flex: 1;
+                min-height: 0;
+                display: none;
+            }
+            .your-panel {
+                display: flex;
+            }
+            #team-builder.show-enemy .your-panel {
+                display: none;
+            }
+            #team-builder.show-enemy .enemy-panel {
+                display: flex;
+            }
+            .divider {
+                display: none;
+            }
+            .pet-card {
+                width: calc(50% - 8px);
+            }
+            .pet-grid {
+                justify-content: space-between;
+            }
+            #start-btn {
+                bottom: 20px;
+                padding: 14px 30px;
+                font-size: 12px;
+            }
+            #battle-screen {
+                height: auto;
+                min-height: 100vh;
+                overflow-y: auto;
+            }
+            .battle-container {
+                flex-direction: column-reverse;
+                height: auto;
+                min-height: 100vh;
+                padding: 92px 8px 92px;
+                gap: 4px;
+            }
+            .side-deck {
+                flex-direction: row;
+                flex-wrap: wrap;
+                width: 100%;
+                max-width: 370px;
+                justify-content: center;
+                align-items: center;
+                padding: 4px;
+                gap: 4px;
+            }
+            .side-deck .swap-btn {
+                width: auto;
+                padding: 6px 14px;
+                font-size: 9px;
+            }
+            .side-pet {
+                width: 40px;
+                height: 40px;
+                margin-bottom: 0;
+            }
+            .side-pet img {
+                width: 32px;
+                height: 32px;
+            }
+            .active-deck-area {
+                width: 100%;
+                max-width: 370px;
+                padding: 8px 6px;
+                gap: 4px;
+            }
+            .deck-label-big {
+                font-size: 10px;
+            }
+            .player-log {
+                min-height: 16px;
+                font-size: 10px;
+            }
+            .pet-row {
+                gap: 6px;
+            }
+            .team-pet {
+                width: 76px;
+                padding: 5px;
+                gap: 2px;
+            }
+            .team-pet img {
+                width: 36px;
+                height: 36px;
+            }
+            .team-pet .tp-name {
+                font-size: 9px;
+                max-width: 64px;
+            }
+            .team-pet .tp-cd {
+                font-size: 9px;
+            }
+            .hp-section {
+                gap: 5px;
+            }
+            .hp-label {
+                font-size: 8px;
+            }
+            .hp-bar-outer {
+                height: 11px;
+            }
+            .hp-text {
+                font-size: 9px;
+                width: 40px;
+            }
+            .vs-divider {
+                font-size: 13px;
+                padding: 0;
+            }
+            .passive-icon,
+            .status-icon-debuff,
+            .status-icon-buff {
+                width: 22px;
+                height: 22px;
+                border-width: 1px;
+            }
+            .passive-icon img,
+            .status-icon-debuff img,
+            .status-icon-buff img {
+                width: 17px;
+                height: 17px;
+            }
+            .passive-indicator {
+                max-width: 42vw;
+                gap: 4px;
+                bottom: 4px !important;
+                top: auto !important;
+            }
+            #your-debuffs {
+                bottom: 30px !important;
+            }
+            #your-buffs {
+                bottom: 56px !important;
+            }
+            #enemy-passives,
+            #enemy-debuffs,
+            #enemy-buffs {
+                bottom: auto !important;
+            }
+            #enemy-passives {
+                top: 4px !important;
+            }
+            #enemy-debuffs {
+                top: 30px !important;
+            }
+
+            #enemy-buffs {
+                top: 56px !important;
+            }
+
+            .weather-indicator {
+                top: 4px;
+            }
+
+            .weather-icon {
+                padding: 4px 8px;
+                gap: 4px;
+            }
+
+            .weather-icon img {
+                width: 22px;
+                height: 22px;
+            }
+
+            .weather-timer {
+                font-size: 10px;
+            }
+
+            #battle-log {
+                bottom: 4px;
+                font-size: 10px;
+            }
+
+            .detail-log-panel {
+                top: 40px;
+                left: 10px;
+                right: auto;
+                width: 150px;
+                max-width: 40vw;
+            }
+
+            .detail-log-body {
+                max-height: 110px;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .pet-card {
+                width: 100%;
+            }
+
+            .slot .slot-name {
+                max-width: 70px;
+            }
+        }
     </style>
 </head>
 
 <body>
 
-    <!-- Info button: reopens the changelog/credits panel any time -->
+    <!-- Info button -->
     <button class="info-fab" id="info-fab-btn" title="Changelog, Credits & Disclaimer">ℹ️</button>
 
     <div class="info-modal-overlay" id="info-modal-overlay">
@@ -1354,7 +1594,11 @@
 
 
     <div id="team-builder">
-        <div class="panel">
+        <div class="team-tabs">
+            <button class="team-tab-btn active" id="tab-your-btn" onclick="switchTeamPanel('your')">🟢 YOUR TEAM</button>
+            <button class="team-tab-btn" id="tab-enemy-btn" onclick="switchTeamPanel('enemy')">🔴 ENEMY TEAM</button>
+        </div>
+        <div class="panel your-panel">
             <div class="panel-header">🟢 YOUR TEAM</div>
             <input type="text" class="search-box" placeholder="🔍 Search pets..."
                 oninput="filterPets(this.value, 'your-pet-list')">
@@ -1367,7 +1611,7 @@
             <div class="pet-list-area" id="your-pet-list"></div>
         </div>
         <div class="divider"></div>
-        <div class="panel">
+        <div class="panel enemy-panel">
             <div class="panel-header">🔴 ENEMY TEAM</div>
             <input type="text" class="search-box" placeholder="🔍 Search pets..."
                 oninput="filterPets(this.value, 'enemy-pet-list')">
@@ -1385,6 +1629,12 @@
     <div id="battle-screen"></div>
 
     <script>
+        function switchTeamPanel(name) {
+            document.getElementById('team-builder').classList.toggle('show-enemy', name === 'enemy');
+            document.getElementById('tab-your-btn').classList.toggle('active', name === 'your');
+            document.getElementById('tab-enemy-btn').classList.toggle('active', name === 'enemy');
+        }
+
         let allPets = [];
         let yourTeam = { deck1: [null, null, null], deck2: [null, null, null] };
         let enemyTeam = { deck1: [null, null, null], deck2: [null, null, null] };
